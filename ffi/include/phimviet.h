@@ -55,6 +55,8 @@ PvResult pv_process(PvEngine *engine, uint32_t codepoint, uint32_t flags);
 PvResult pv_backspace(PvEngine *engine);
 PvResult pv_commit(PvEngine *engine, int32_t boundary, uint32_t codepoint);
 PvResult pv_restore_raw(PvEngine *engine);
+/* Nạp lại một từ có sẵn trong văn bản để sửa dấu tiếp ("may" → "mấy"). true nếu thành công. */
+bool pv_load_word(PvEngine *engine, const char *word);
 void pv_reset(PvEngine *engine);
 bool pv_is_composing(const PvEngine *engine);
 char *pv_composing(const PvEngine *engine);

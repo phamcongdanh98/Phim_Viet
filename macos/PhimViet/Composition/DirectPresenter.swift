@@ -11,6 +11,11 @@ public final class DirectPresenter: Presenter {
 
     public init() {}
 
+    /// Tiếp tục một từ đã có trong văn bản (sửa dấu sau khi xoá dấu cách).
+    public init(continuing word: String) {
+        shown = word
+    }
+
     private static func result(_ r: DirectEdit.Outcome) -> PresentResult {
         switch r {
         case .abandoned: return .abandoned

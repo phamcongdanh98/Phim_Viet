@@ -20,6 +20,10 @@ public final class CompositionSession {
     public private(set) var presenter: Presenter?
     /// Lần ghi cuối của từ vừa chốt (Direct) mà app chưa xác nhận — kiểm ở phím kế tiếp.
     private var leftover: (bundle: String, pending: DirectEdit.Pending, clicks: Int)?
+    /// Chứng minh chưa đạt ngay (app báo trễ) — thử lại ở phím kế tiếp.
+    private var pendingProof: (bundle: String, text: String, clicks: Int)?
+    /// Vừa có Backspace đi qua ranh giới từ → phím chữ tiếp theo có thể sửa dấu cho từ trước.
+    private var rewindArmed = false
     private var clicksAtWordStart = 0
     private var clientReadable = true
 
@@ -50,6 +54,19 @@ public final class CompositionSession {
 
     /// Kiểm lần ghi chưa được xác nhận của từ trước (app báo trễ). Sai → rút quyền gõ trực tiếp.
     private func checkLeftover(client: TextClient) {
+        if let pp = pendingProof {
+            pendingProof = nil
+            if pp.bundle == client.bundleIdentifier, pp.clicks == clickCounter(),
+               trust.state(pp.bundle) == .unknown {
+                if let pos = ClientTrust.proveLater(pp.text, client: client) {
+                    trust.record(pp.bundle, proved: true, position: pos)
+                    onEvent("trust.proved.late \(pp.bundle)")
+                } else {
+                    onEvent("trust.failed \(pp.bundle) \(ClientTrust.diagnose(pp.text, client: client))")
+                    trust.record(pp.bundle, proved: false, position: -1)
+                }
+            }
+        }
         guard let l = leftover else { return }
         leftover = nil
         guard l.bundle == client.bundleIdentifier, l.clicks == clickCounter() else { return }
@@ -70,6 +87,10 @@ public final class CompositionSession {
         }
         checkLeftover(client: client)
         endWordIfClicked(client: client)
+        if rewindArmed {
+            rewindArmed = false
+            if presenter == nil { tryRewind(key: key, client: client) }
+        }
         let out = engine.process(key, shift: shift, caps: caps)
         return route(out, key: key, shift: shift, caps: caps, client: client, retry: true)
     }
@@ -77,7 +98,11 @@ public final class CompositionSession {
     public func handleBackspace(client: TextClient) -> Bool {
         checkLeftover(client: client)
         endWordIfClicked(client: client)
-        guard let p = presenter else { return false }
+        guard let p = presenter else {
+            rewindArmed = true
+            return false
+        }
+        rewindArmed = false
         guard case .composing(let text) = engine.backspace() else {
             reset()
             return false
@@ -107,6 +132,7 @@ public final class CompositionSession {
     }
 
     public func handleEscape(client: TextClient) -> Bool {
+        rewindArmed = false
         endWordIfClicked(client: client)
         guard presenter != nil else { return false }
         if case .commit(let text, _) = engine.restoreRaw() {
@@ -119,6 +145,7 @@ public final class CompositionSession {
 
     /// Kết thúc từ vì phím điều hướng, phím tắt, click, đổi ô/ứng dụng.
     public func commit(_ boundary: Boundary, client: TextClient?) {
+        rewindArmed = false
         guard let p = presenter else {
             engine.reset()
             return
@@ -202,11 +229,39 @@ public final class CompositionSession {
         // Chứng minh: sau khi chốt bằng Marked, con trỏ phải ở cuối chữ vừa chèn và đọc lại đúng chữ đó.
         if p.kind == .marked, directTypingEnabled, clientReadable, !bundle.isEmpty, !text.isEmpty,
            trust.state(bundle) == .unknown {
-            let pos = ClientTrust.proveAfterCommit(text, client: client)
-            let ok = pos != nil
-            trust.record(bundle, proved: ok, position: pos ?? -1)
-            onEvent(ok ? "trust.proved" : "trust.failed")
+            if let pos = ClientTrust.proveAfterCommit(text, client: client) {
+                trust.record(bundle, proved: true, position: pos)
+                onEvent("trust.proved \(bundle)")
+            } else {
+                // App có thể báo vị trí con trỏ trễ (Chrome): thử lại ở phím kế tiếp.
+                pendingProof = (bundle, text, clickCounter())
+                onEvent("trust.deferred \(bundle) \(ClientTrust.diagnose(text, client: client))")
+            }
         }
+    }
+
+    /// Sửa dấu cho từ ngay trước con trỏ (sau khi Backspace xoá dấu cách): nạp từ đó vào engine
+    /// và tiếp tục bằng Direct. Chỉ cho app đã được tin; mọi lần thay vẫn được kiểm chứng như thường.
+    private func tryRewind(key: UnicodeScalar, client: TextClient) {
+        let bundle = client.bundleIdentifier
+        guard directTypingEnabled, clientReadable, !bundle.isEmpty, trust.allowsDirect(bundle),
+              key.isASCII, CharacterSet.alphanumerics.contains(key)
+        else { return }
+        let sel = client.selectedRange()
+        guard sel.location != NSNotFound, sel.length == 0, sel.location > 0 else { return }
+        let k = min(sel.location, 33)
+        guard let before = client.text(in: NSRange(location: sel.location - k, length: k)) else { return }
+        var word = ""
+        for ch in before.reversed() {
+            guard ch.isLetter, ch.unicodeScalars.count == 1 else { break }
+            word.insert(ch, at: word.startIndex)
+        }
+        // Có ranh giới trước từ (hoặc từ bắt đầu tài liệu) — không lấy nửa từ.
+        guard !word.isEmpty, word.utf16.count < k || sel.location == word.utf16.count else { return }
+        guard engine.loadWord(word) else { return }
+        presenter = DirectPresenter(continuing: word)
+        clicksAtWordStart = clickCounter()
+        onEvent("rewind n=\(word.utf16.count)")
     }
 
     private func endWordUntrusted(client: TextClient, event: String) {

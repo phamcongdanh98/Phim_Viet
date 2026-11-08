@@ -182,6 +182,23 @@ pub unsafe extern "C" fn pv_commit(e: *mut PvEngine, boundary: i32, codepoint: u
     with_engine(e, |en| en.commit(b))
 }
 
+/// Nạp lại một từ có sẵn trong văn bản để sửa dấu tiếp. Trả `true` nếu thành công.
+///
+/// # Safety
+/// `e` hợp lệ; `word` là NULL hoặc chuỗi C UTF-8 kết thúc NUL.
+#[no_mangle]
+pub unsafe extern "C" fn pv_load_word(e: *mut PvEngine, word: *const c_char) -> bool {
+    if e.is_null() || word.is_null() {
+        return false;
+    }
+    let pv = &mut *e;
+    catch_unwind(AssertUnwindSafe(|| match CStr::from_ptr(word).to_str() {
+        Ok(w) => pv.engine.load_word(w),
+        Err(_) => false,
+    }))
+    .unwrap_or(false)
+}
+
 /// ESC: trả lại phím thô.
 ///
 /// # Safety

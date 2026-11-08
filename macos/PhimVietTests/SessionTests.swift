@@ -342,4 +342,49 @@ struct SessionTests {
         #expect(!c.writes.contains("mark"))
         #expect(c.text == "hôm nay là ")
     }
+
+    // --- sửa dấu từ trước sau Backspace qua dấu cách ("may" → "mấy")
+
+    @Test func rewindPreviousWordAfterBackspace() {
+        let c = FakeClient()
+        let t = Typist(client: c, trust: trusted())
+        t.type("toi may \u{8}as ")
+        #expect(c.text == "toi mấy ")
+        t.type("Viet \u{8}ej.")
+        #expect(c.text == "toi mấy Việt.")
+    }
+
+    @Test func rewindDoesNothingForEnglishOrUntrusted() {
+        let c = FakeClient()
+        let t = Typist(client: c, trust: trusted())
+        t.type("with \u{8}s ")
+        #expect(c.text == "withs ")
+        let c2 = FakeClient()
+        let t2 = Typist(client: c2, direct: false)
+        t2.type("may \u{8}s ")
+        #expect(c2.text == "mays ")
+    }
+
+    @Test func rewindInLaggingApp() {
+        let c = FakeClient()
+        c.lagging = true
+        let t = Typist(client: c, trust: trusted())
+        t.type("may \u{8}as ")
+        #expect(c.text == "mấy ")
+    }
+
+    @Test func chromeProofDeferredWhenCaretLags() {
+        // Chrome: selectedRange chưa cập nhật NGAY sau insertText nhưng đọc chữ đã mới.
+        let c = FakeClient()
+        c.lagging = true
+        c.contentFresh = true
+        let trust = ClientTrust()
+        let t = Typist(client: c, trust: trust)
+        t.type("hoom nay laf ")
+        #expect(trust.state(c.bundleIdentifier) == .trusted)
+        c.writes.removeAll()
+        t.type("thuws hai ")
+        #expect(!c.writes.contains("mark"))
+        #expect(c.text == "hôm nay là thứ hai ")
+    }
 }

@@ -560,6 +560,35 @@ fn mouse_and_focus_boundaries_skip_macros() {
 }
 
 #[test]
+fn load_word_then_edit() {
+    use phimviet_core::{Engine, KeyInput};
+    for (word, keys, want, c) in [
+        ("may", "as", "mấy", telex()),
+        ("may", "s", "máy", telex()),
+        ("Viet", "ej", "Việt", telex()),
+        ("việt", "f", "viềt", telex()),
+        ("tieng", "es", "tiếng", telex()),
+        ("nguoi", "wf", "người", telex()),
+        ("dang", "d", "đang", telex()),
+        ("may", "61", "mấy", vni()),
+        ("xoong", "f", "xoòng", telex()),
+    ] {
+        let mut e = Engine::new(c);
+        assert!(e.load_word(word), "{word}");
+        assert_eq!(e.composing(), word);
+        for k in keys.chars() {
+            e.process(KeyInput::new(k));
+        }
+        assert_eq!(e.composing(), want, "{word} + {keys}");
+    }
+    let mut e = Engine::new(telex());
+    assert!(!e.load_word(""));
+    assert!(!e.load_word("a b"));
+    assert!(!e.load_word("x1"));
+    assert!(!e.is_composing());
+}
+
+#[test]
 fn caps_lock_flag() {
     use phimviet_core::{Engine, KeyInput};
     let mut e = Engine::new(telex());

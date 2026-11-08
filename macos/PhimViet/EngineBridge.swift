@@ -38,6 +38,8 @@ public protocol CompositionEngine: AnyObject {
     func restoreRaw() -> EngineOutput
     func reset()
     @discardableResult func setConfig(json: String) -> Bool
+    /// Nạp lại một từ có sẵn trong văn bản để sửa dấu tiếp.
+    func loadWord(_ word: String) -> Bool
 }
 
 /// Engine Rust qua C ABI (`ffi/include/phimviet.h`). Mỗi chuỗi trả về được giải phóng đúng một lần.
@@ -82,6 +84,10 @@ public final class RustEngine: CompositionEngine {
     public func restoreRaw() -> EngineOutput { take(pv_restore_raw(handle)) }
 
     public func reset() { pv_reset(handle) }
+
+    public func loadWord(_ word: String) -> Bool {
+        word.withCString { pv_load_word(handle, $0) }
+    }
 
     @discardableResult
     public func setConfig(json: String) -> Bool {

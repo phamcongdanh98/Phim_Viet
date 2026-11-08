@@ -116,3 +116,13 @@ Mỗi mục: **Bối cảnh → Quyết định → Lý do**. Mục mới thêm 
 - **⌘A phải bấm 2 lần trên Chrome:** chốt marked text trong lúc xử lý keyDown của phím tắt làm Chrome bỏ qua phím tắt.
   Nay chốt ngay khi `flagsChanged` báo vừa nhấn ⌘/⌃/⌥ (trước keyDown).
 - Sự kiện chẩn đoán (không có nội dung gõ) ghi mức `notice` để `log show` đọc lại được.
+
+## D10. Chrome lần 2 + sửa dấu từ trước (2026-11-09)
+
+- **Log thực tế:** `trust.failed` ngay từ đầu tiên trên Chrome. Theo mã nguồn Chromium, `selectedRange` là giá trị đệm
+  cập nhật bất đồng bộ, còn `attributedSubstringForProposedRange` là IPC đồng bộ → đọc lại ngay sau khi chèn lệch nhau.
+  **Sửa:** chứng minh thất bại ngay thì hoãn (`trust.deferred`), kiểm lại ở phím kế tiếp (`ClientTrust.proveLater`,
+  cho phép app đã chèn thêm ≤2 ký tự kết thúc từ). Log kèm số liệu chẩn đoán (vị trí, độ dài — không nội dung) và bundle id.
+- **Sửa dấu từ trước** (trước đây nằm ngoài phạm vi v1, người dùng yêu cầu): sau khi ⌫ đi qua ranh giới từ, phím chữ tiếp theo
+  đọc từ ngay trước con trỏ, `pv_load_word` nạp lại (chỉ khi raw chuẩn gõ ra đúng từ đó — từ tiếng Anh như `with`, `data`
+  không được nạp), rồi tiếp tục bằng Direct với kiểm chứng như thường. Chỉ ở app đã được tin; chế độ gạch chân không có.

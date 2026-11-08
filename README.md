@@ -30,6 +30,7 @@ Nếu chưa thấy Phím Việt trong danh sách: đăng xuất rồi đăng nh�
 |---|---|
 | Chuyển Việt ⇄ Anh | Nhấn rồi nhả **⌃ Control + ⇧ Shift** (đổi trong Cài đặt) · hoặc menu nhập liệu · hoặc biểu tượng V/E |
 | Lấy lại phím thô của từ đang gõ | **ESC** (`vieejt` → ESC → `vieejt`) |
+| Sửa dấu từ vừa gõ xong | Xoá dấu cách bằng ⌫ rồi gõ dấu tiếp: `may ` ⌫ `as` → `mấy` (ở app đã gõ thẳng được) |
 | Đổi kiểu gõ, kiểu đặt dấu, bật/tắt tính năng | Menu nhập liệu (biểu tượng ô **V** trên thanh menu) |
 | Cài đặt chi tiết, gõ tắt, danh sách app | Menu nhập liệu → **Cài đặt…** |
 
@@ -120,7 +121,6 @@ xcrun stapler staple build/PhimViet.app
 - Đồng bộ cài đặt qua đám mây
 - Bản Windows / Linux / iOS
 - Tự cập nhật (Sparkle)
-- Sửa dấu cho từ trước đó sau khi Backspace qua ranh giới từ
 
 ## Giấy phép
 

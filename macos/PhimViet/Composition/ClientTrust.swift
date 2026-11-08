@@ -73,6 +73,33 @@ public final class ClientTrust {
         return client.selectedRange().location
     }
 
+    /// Chứng minh trễ (ở phím kế tiếp): app có thể đã chèn thêm phím kết thúc từ (cách, dấu câu)
+    /// sau chữ, nên thử cuối chữ tại con trỏ − 0…2. Trả vị trí cuối chữ nếu đạt.
+    public static func proveLater(_ text: String, client: TextClient) -> Int? {
+        let sel = client.selectedRange()
+        let n = text.utf16.count
+        guard sel.location != NSNotFound, sel.length == 0 else { return nil }
+        for slack in 0...2 {
+            let end = sel.location - slack
+            guard end >= n else { break }
+            if let t = client.text(in: NSRange(location: end - n, length: n)), t.utf16Equals(text) {
+                return end
+            }
+        }
+        return nil
+    }
+
+    /// Mô tả lý do đọc lại thất bại — chỉ số liệu, không có nội dung.
+    public static func diagnose(_ text: String, client: TextClient) -> String {
+        let sel = client.selectedRange()
+        let loc = sel.location == NSNotFound ? -1 : sel.location
+        let len = client.documentLength() ?? -1
+        switch DirectEdit.verifiedRegion(shown: text, client: client) {
+        case .success: return "ok sel=\(loc),\(sel.length) doc=\(len) n=\(text.utf16.count)"
+        case .failure(let r): return "\(r) sel=\(loc),\(sel.length) doc=\(len) n=\(text.utf16.count)"
+        }
+    }
+
     /// Client có báo vị trí con trỏ không (kiểm tra lúc activate).
     public static func supportsReading(_ client: TextClient) -> Bool {
         let sel = client.selectedRange()

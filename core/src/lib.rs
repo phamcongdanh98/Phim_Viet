@@ -216,6 +216,27 @@ impl Engine {
         Output::Composing(self.last.display.clone())
     }
 
+    /// Nạp lại một từ đã có trong văn bản để sửa tiếp (ví dụ `may` → xoá dấu cách → gõ `as` → `mấy`).
+    /// Trả `true` nếu dựng được raw gõ ra đúng `word`; ngược lại engine giữ trạng thái rỗng.
+    pub fn load_word(&mut self, word: &str) -> bool {
+        self.reset();
+        let word = chars::nfc(word);
+        let n = word.chars().count();
+        if n == 0 || n > 32 || !word.chars().all(|c| chars::decompose(c).is_some()) {
+            return false;
+        }
+        let Some(raw) = restore::canonical_raw(&word, &self.config) else {
+            return false;
+        };
+        let r = compose::render(&raw, &self.config);
+        if r.display != word {
+            return false;
+        }
+        self.raw = raw;
+        self.last = r;
+        true
+    }
+
     /// Kết thúc từ: gõ tắt, tự khôi phục tiếng Anh (ENGINE_RULES §7), rồi reset.
     pub fn commit(&mut self, boundary: Boundary) -> Output {
         if self.raw.is_empty() {
