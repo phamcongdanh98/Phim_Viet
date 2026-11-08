@@ -5,12 +5,12 @@ Checklist chạy trên máy thật sau `make install`. Ghi kết quả vào cộ
 ## Chuẩn bị
 
 1. `make install` → System Settings → Keyboard → Input Sources → thêm **Phím Việt** (Vietnamese). Chọn Phím Việt.
-2. Mặc định: Telex, đặt dấu kiểu mới, gõ không gạch chân **bật**, kiểm tra âm tiết **bật**, tự khôi phục tiếng Anh **bật**.
+2. Mặc định: Telex, đặt dấu kiểu mới, "Gạch chân chữ đang gõ" **tắt** (gõ thẳng), kiểm tra âm tiết **bật**, tự khôi phục tiếng Anh **bật**.
 3. Mở log trong một Terminal (dùng app khác để gõ thử):
    `log stream --level debug --predicate 'subsystem == "com.phimviet.inputmethod.PhimViet"'`
    Sự kiện cần để ý: `trust.proved` / `trust.failed` (app có được gõ trực tiếp không), `direct.abandon` (đã bỏ từ thay vì ghi đè).
 4. Ở mỗi app, **hai từ đầu tiên luôn gạch chân** (đang kiểm chứng app); từ thứ ba trở đi mới gõ trực tiếp nếu app đạt.
-5. Lặp lại một lượt với **Gõ không gạch chân = tắt** cho các app quan trọng (chế độ gạch chân thuần).
+5. Lặp lại một lượt với **Gạch chân chữ đang gõ = bật** cho các app quan trọng (chế độ gạch chân thuần).
 
 ## Các tình huống
 

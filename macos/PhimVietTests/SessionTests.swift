@@ -284,4 +284,47 @@ struct SessionTests {
         t.type("tieengs\u{8}g ")
         #expect(c.text == "vie tiếng ")
     }
+
+    @Test func laggingChromiumLikeAppStillTypesDirect() {
+        // Chromium báo con trỏ/nội dung trễ một nhịp sau mỗi lần ghi: vẫn được tin và gõ trực tiếp đúng.
+        let c = FakeClient()
+        c.lagging = true
+        let trust = ClientTrust()
+        let t = Typist(client: c, trust: trust)
+        t.type("hoom nay ")
+        #expect(trust.state(c.bundleIdentifier) == .trusted)
+        c.writes.removeAll()
+        t.type("laf thuws hai, tieengs Vieejt nhes. ")
+        #expect(c.text == "hôm nay là thứ hai, tiếng Việt nhé. ")
+        #expect(!c.writes.contains("mark"))
+        #expect(trust.state(c.bundleIdentifier) == .trusted)
+        t.type("vieejt\u{8}\u{8}eejt ")
+        #expect(c.text.hasSuffix("nhé. việt "))
+    }
+
+    @Test func laggingAppThatLiesIsStillCaught() {
+        let c = FakeClient()
+        c.lagging = true
+        c.doc.setString("hello ")
+        c.sel = NSRange(location: 6, length: 0)
+        let trust = trusted()
+        let t = Typist(client: c, trust: trust)
+        t.type("vie")
+        c.lyingSelection = NSRange(location: 1, length: 0)
+        t.type("e")
+        #expect(c.text.hasPrefix("hello vie"))
+        #expect(trust.state(c.bundleIdentifier) == .distrusted)
+    }
+
+    @Test func leftoverWriteIsVerifiedOnNextWord() {
+        // App bỏ qua replacementRange nhưng báo trễ: lỗi lộ ra ở phím sau → rút quyền.
+        let c = FakeClient()
+        c.lagging = true
+        c.ignoresReplacementRange = true
+        let trust = trusted()
+        let t = Typist(client: c, trust: trust)
+        t.type("chaof ")
+        t.type("b")
+        #expect(trust.state(c.bundleIdentifier) == .distrusted)
+    }
 }

@@ -34,7 +34,14 @@ final class IMKTextClient: TextClient {
         client.insertText(text, replacementRange: replacementRange)
     }
 
+    /// Gạch chân mảnh, không tô nền: gửi chuỗi trơn thì một số app (Chrome) tự vẽ kiểu "đang chọn".
+    private static let markedAttributes: [NSAttributedString.Key: Any] = [
+        .underlineStyle: NSUnderlineStyle.single.rawValue,
+        NSAttributedString.Key("NSMarkedClauseSegment"): 0,
+    ]
+
     func setMarkedText(_ text: String, selectionRange: NSRange, replacementRange: NSRange) {
-        client.setMarkedText(text, selectionRange: selectionRange, replacementRange: replacementRange)
+        let s = NSAttributedString(string: text, attributes: Self.markedAttributes)
+        client.setMarkedText(s, selectionRange: selectionRange, replacementRange: replacementRange)
     }
 }

@@ -66,29 +66,64 @@ public enum DirectEdit {
         return .success(Region(start: start, selectionLength: sel.length))
     }
 
+    /// Trạng thái tài liệu dự kiến sau một lần ghi mà app chưa kịp báo lại (Chromium/Electron cập nhật
+    /// vị trí con trỏ bất đồng bộ). Được kiểm tra ở lần sửa kế tiếp, trước khi ghi.
+    public struct Pending: Equatable {
+        /// Vị trí con trỏ dự kiến.
+        public let caret: Int
+        /// Đầu từ trong tài liệu.
+        public let start: Int
+        /// Chữ dự kiến tại `[start, caret)`.
+        public let text: String
+
+        public init(caret: Int, start: Int, text: String) {
+            self.caret = caret
+            self.start = start
+            self.text = text
+        }
+
+        /// Tài liệu đúng như dự kiến? `slack`: số ký tự app có thể đã chèn thêm sau con trỏ (phím cách…).
+        public func holds(in client: TextClient, slack: Int = 0) -> Bool {
+            let loc = client.selectedRange().location
+            guard loc != NSNotFound, loc >= caret, loc <= caret + slack, start >= 0,
+                  let t = client.text(in: NSRange(location: start, length: text.utf16.count))
+            else { return false }
+            return t.utf16Equals(text)
+        }
+    }
+
     /// Đưa tài liệu từ `shown` sang `new`.
     ///
-    /// Sau mỗi lần ghi đều kiểm tra con trỏ dịch đúng độ dài vừa ghi (chặn app báo con trỏ sai —
-    /// trùng hợp nội dung với từ ngắn không đủ để tin); sau khi thay còn đọc lại cả từ.
-    public static func edit(from shown: String, to new: String, client: TextClient) -> Outcome {
-        if shown.utf16Equals(new) { return .unchanged }
+    /// - Chỉ thêm đuôi: chèn tại con trỏ (luôn an toàn), không đọc tài liệu.
+    /// - Cần thay: đọc và so khớp chữ trước con trỏ; nếu còn `pending` từ lần ghi trước thì nó phải đúng.
+    /// - Sau mỗi lần ghi: con trỏ đúng vị trí dự kiến → xong; con trỏ chưa đổi (app báo trễ) → trả `Pending`
+    ///   để kiểm ở lần sau; con trỏ ở chỗ khác → `.unverified`.
+    public static func edit(from shown: String, to new: String, client: TextClient,
+                            pending: Pending? = nil) -> (Outcome, Pending?) {
+        if shown.utf16Equals(new) { return (.unchanged, pending) }
         let common = commonPrefixCount(shown, new)
         let oldTailIsEmpty = shown.count == common
         let newTail = String(new.dropFirst(common))
+        let n = new.utf16.count
         if oldTailIsEmpty {
             let before = client.selectedRange()
             client.insertText(newTail, replacementRange: notFoundRange)
-            if before.location != NSNotFound, before.location >= 0 {
-                let after = client.selectedRange()
-                if after.location != before.location + newTail.utf16.count {
-                    return .unverified(.caretMoved)
-                }
+            if let p = pending {
+                // Chưa kiểm được lần ghi trước: mang kỳ vọng tiếp (chèn tại con trỏ vẫn an toàn).
+                let caret = p.caret + newTail.utf16.count
+                return (.appended, Pending(caret: caret, start: caret - n, text: new))
             }
-            return .appended
+            guard before.location != NSNotFound, before.location >= 0 else { return (.appended, nil) }
+            let expected = before.location + newTail.utf16.count
+            return settle(after: client.selectedRange().location, before: before.location,
+                          expected: expected, word: new, staleWord: nil, client: client, ok: .appended)
+        }
+        if let p = pending, !p.holds(in: client) {
+            return (.abandoned(.postCheckFailed), nil)
         }
         switch verifiedRegion(shown: shown, client: client) {
         case .failure(let r):
-            return .abandoned(r)
+            return (.abandoned(r), nil)
         case .success(let region):
             let prefixLen = String(shown.prefix(common)).utf16.count
             // Phủ cả vùng chọn sau con trỏ (gợi ý tự hoàn thành của thanh URL, Spotlight, Excel).
@@ -96,15 +131,31 @@ public enum DirectEdit {
                 location: region.start + prefixLen,
                 length: shown.utf16.count - prefixLen + region.selectionLength
             )
+            let before = region.start + shown.utf16.count
             client.insertText(newTail, replacementRange: range)
-            let n = new.utf16.count
-            guard client.selectedRange().location == region.start + n else {
-                return .unverified(.caretMoved)
-            }
-            guard let back = client.text(in: NSRange(location: region.start, length: n)),
-                  back.utf16Equals(new)
-            else { return .unverified(.postCheckFailed) }
-            return .replaced
+            return settle(after: client.selectedRange().location, before: before,
+                          expected: region.start + n, word: new, staleWord: shown, client: client,
+                          ok: .replaced)
         }
+    }
+
+    private static func settle(after: Int, before: Int, expected: Int, word: String, staleWord: String?,
+                               client: TextClient, ok: Outcome) -> (Outcome, Pending?) {
+        let n = word.utf16.count
+        let pending = Pending(caret: expected, start: expected - n, text: word)
+        if after == expected {
+            // Thêm đuôi: con trỏ dịch đúng là đủ, không đọc tài liệu.
+            guard staleWord != nil else { return (ok, nil) }
+            guard let back = client.text(in: NSRange(location: expected - n, length: n)) else {
+                return (.unverified(.postCheckFailed), nil)
+            }
+            if back.utf16Equals(word) { return (ok, nil) }
+            if let stale = staleWord, back.utf16Equals(stale) { return (ok, pending) }  // nội dung báo trễ
+            return (.unverified(.postCheckFailed), nil)
+        }
+        if after == before && after != expected {
+            return (ok, pending)  // con trỏ báo trễ → kiểm ở lần sau
+        }
+        return (.unverified(.caretMoved), nil)
     }
 }

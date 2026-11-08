@@ -93,7 +93,7 @@ sequenceDiagram
     end
 ```
 
-- **Chọn presenter ở đầu mỗi từ**, giữ tới khi chốt. Direct chỉ khi: bật "gõ không gạch chân", client báo được
+- **Chọn presenter ở đầu mỗi từ**, giữ tới khi chốt. Direct chỉ khi: tắt "Gạch chân chữ đang gõ", client báo được
   vị trí con trỏ lúc activate, bundle id khác rỗng, và `ClientTrust` = đã tin.
 - **Chứng minh**: app chưa biết luôn bắt đầu bằng Marked; mỗi lần chốt, con trỏ phải ở đúng cuối chữ vừa chèn
   (tính từ `markedRange`) và chữ đọc lại phải khớp chính xác. Cần hai lần đạt ở hai vị trí khác nhau.

@@ -52,7 +52,7 @@ Ví dụ: `Vie65t Nam` → `Việt Nam`, `d9uo7ng2` → `đường`.
 
 ### Gõ không gạch chân
 
-Bật mặc định. Ở mỗi ứng dụng, hai từ đầu tiên vẫn có gạch chân trong lúc Phím Việt kiểm chứng app đọc lại văn bản
+Mặc định **không** gạch chân (mục "Gạch chân chữ đang gõ" trong menu nhập liệu đang tắt). Ở mỗi ứng dụng, hai từ đầu tiên vẫn có gạch chân trong lúc Phím Việt kiểm chứng app đọc lại văn bản
 và báo vị trí con trỏ chính xác; đạt thì các từ sau gõ thẳng (mỗi lần ghi vẫn được kiểm tra lại). App không đạt (một số terminal, ô nhập đặc biệt) tự động dùng chế độ
 gạch chân — an toàn, không mất chữ. Chi tiết: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 

@@ -101,3 +101,13 @@ Mỗi mục: **Bối cảnh → Quyết định → Lý do**. Mục mới thêm 
 | 9 | `Ww` → `w` | Giữ hoa/thường của phím `w` đầu | `hard_cases` |
 | 10 | Gõ tắt NFD | `chars::nfc` khi nạp gõ tắt | `macros`, `nfc_composes_vietnamese` |
 | 11 | Script không build lại Rust | Luôn gọi `build_rust_universal.sh` (cargo tự bỏ qua) | — |
+
+## D9. Phản hồi thử thật trên Chrome (2026-11-08)
+
+- **Nhầm tên tuỳ chọn:** người dùng "tắt" mục *Gõ không gạch chân* với ý tắt gạch chân → thực tế bật gạch chân.
+  Đổi thành **"Gạch chân chữ đang gõ"** (có dấu tích = có gạch chân); dữ liệu lưu vẫn là `directTyping` (đảo nghĩa ở UI).
+- **Marked text bị tô nền trong Chrome:** gửi `NSAttributedString` gạch chân mảnh (`NSUnderlineStyle.single`) thay vì chuỗi trơn.
+- **App báo trễ (Chromium/Electron cập nhật vị trí con trỏ bất đồng bộ):** kiểm tra ngay sau khi ghi sẽ rút quyền nhầm.
+  Nay: con trỏ đúng ngay → xong; con trỏ *chưa đổi* → lưu `Pending` và kiểm ở lần sửa/phím kế tiếp (trước khi ghi);
+  con trỏ ở chỗ khác → rút quyền. App báo sai vẫn bị bắt (chậm một phím). Test `laggingChromiumLikeAppStillTypesDirect`,
+  `laggingAppThatLiesIsStillCaught`, `leftoverWriteIsVerifiedOnNextWord`.

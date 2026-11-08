@@ -167,7 +167,7 @@ final class PhimVietInputController: IMKInputController {
         add("Đặt dấu kiểu mới (hoà, thuỷ)", #selector(menuNewStyle(_:)), on: p.toneStyle == "new")
         add("Đặt dấu kiểu cũ (hòa, thủy)", #selector(menuOldStyle(_:)), on: p.toneStyle == "old")
         m.addItem(.separator())
-        add("Gõ không gạch chân", #selector(menuDirect(_:)), on: p.directTyping)
+        add("Gạch chân chữ đang gõ", #selector(menuDirect(_:)), on: !p.directTyping)
         add("Kiểm tra âm tiết", #selector(menuSpell(_:)), on: p.spellCheck)
         add("Tự khôi phục tiếng Anh", #selector(menuRestore(_:)), on: p.autoRestore)
         m.addItem(.separator())

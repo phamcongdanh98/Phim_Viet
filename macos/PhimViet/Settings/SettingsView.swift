@@ -58,9 +58,11 @@ struct TypingTab: View {
     var body: some View {
         Form {
             Section {
-                Toggle("Gõ không gạch chân", isOn: $model.prefs.directTyping)
-                Text("Ghi thẳng vào văn bản. Chỉ dùng cho ứng dụng đã được kiểm chứng đọc lại đúng; "
-                     + "ứng dụng khác tự động dùng chế độ gạch chân an toàn.")
+                Toggle("Gạch chân chữ đang gõ", isOn: Binding(
+                    get: { !model.prefs.directTyping },
+                    set: { model.prefs.directTyping = !$0 }))
+                Text("Bỏ dấu tích để gõ thẳng vào văn bản, không gạch chân. Gõ thẳng chỉ dùng cho ứng dụng "
+                     + "đã được kiểm chứng đọc lại đúng (sau hai từ đầu); ứng dụng khác tự dùng gạch chân an toàn.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             Section {

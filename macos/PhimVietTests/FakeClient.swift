@@ -21,20 +21,31 @@ final class FakeClient: TextClient {
     var suggestion: ((String) -> String?)?
     /// App bỏ qua `replacementRange`, luôn chèn tại con trỏ.
     var ignoresReplacementRange = false
+    /// App báo trễ (Chromium/Electron): `selectedRange`/đọc tài liệu trả trạng thái lúc bắt đầu phím,
+    /// chỉ cập nhật khi `tick()` (giữa hai phím).
+    var lagging = false
+    private var snapDoc = ""
+    private var snapSel = NSRange(location: 0, length: 0)
+
+    func tick() {
+        snapDoc = doc as String
+        snapSel = sel
+    }
 
     var reads = 0
     var writes: [String] = []
 
     var text: String { doc as String }
 
-    func selectedRange() -> NSRange { lyingSelection ?? sel }
+    func selectedRange() -> NSRange { lyingSelection ?? (lagging ? snapSel : sel) }
     func markedRange() -> NSRange { marked }
     func documentLength() -> Int? { lyingLength ?? doc.length }
 
     func text(in range: NSRange) -> String? {
         reads += 1
-        guard readable, range.location >= 0, range.location + range.length <= doc.length else { return nil }
-        return doc.substring(with: range)
+        let d: NSString = lagging ? snapDoc as NSString : doc
+        guard readable, range.location >= 0, range.location + range.length <= d.length else { return nil }
+        return d.substring(with: range)
     }
 
     private func replace(_ r: NSRange, with s: String) {
@@ -137,6 +148,7 @@ struct Typist {
 
     func type(_ keys: String) {
         for ch in keys {
+            client.tick()
             let k = String(ch)
             let handled: Bool
             switch k {

@@ -18,6 +18,8 @@ public final class CompositionSession {
     public var onEvent: (String) -> Void = { _ in }
 
     public private(set) var presenter: Presenter?
+    /// Lần ghi cuối của từ vừa chốt (Direct) mà app chưa xác nhận — kiểm ở phím kế tiếp.
+    private var leftover: (bundle: String, pending: DirectEdit.Pending, clicks: Int)?
     private var clicksAtWordStart = 0
     private var clientReadable = true
 
@@ -46,6 +48,18 @@ public final class CompositionSession {
         presenter = nil
     }
 
+    /// Kiểm lần ghi chưa được xác nhận của từ trước (app báo trễ). Sai → rút quyền gõ trực tiếp.
+    private func checkLeftover(client: TextClient) {
+        guard let l = leftover else { return }
+        leftover = nil
+        guard l.bundle == client.bundleIdentifier, l.clicks == clickCounter() else { return }
+        // slack 2: phím kết thúc từ (cách, dấu câu, xuống dòng) app đã tự chèn.
+        if !l.pending.holds(in: client, slack: 2) {
+            trust.revoke(l.bundle)
+            onEvent("direct.latecheck.failed")
+        }
+    }
+
     // MARK: phím
 
     /// Phím có ký tự. Trả `true` nếu đã xử lý (không đưa cho ứng dụng).
@@ -54,12 +68,14 @@ public final class CompositionSession {
             commit(.other, client: client)
             return false
         }
+        checkLeftover(client: client)
         endWordIfClicked(client: client)
         let out = engine.process(key, shift: shift, caps: caps)
         return route(out, key: key, shift: shift, caps: caps, client: client, retry: true)
     }
 
     public func handleBackspace(client: TextClient) -> Bool {
+        checkLeftover(client: client)
         endWordIfClicked(client: client)
         guard let p = presenter else { return false }
         guard case .composing(let text) = engine.backspace() else {
@@ -180,6 +196,9 @@ public final class CompositionSession {
             trust.revoke(bundle)
             onEvent("direct.commit.unverified")
             return
+        }
+        if let d = p as? DirectPresenter, let pend = d.pending {
+            leftover = (bundle, pend, clickCounter())
         }
         // Chứng minh: sau khi chốt bằng Marked, con trỏ phải ở cuối chữ vừa chèn và đọc lại đúng chữ đó.
         if p.kind == .marked, directTypingEnabled, clientReadable, !bundle.isEmpty, !text.isEmpty,
