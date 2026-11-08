@@ -156,7 +156,9 @@ pub fn parse_macros(v: Json) -> Result<Vec<(String, String)>, String> {
 }
 
 fn push_macro(out: &mut Vec<(String, String)>, k: String, v: String) {
-    let k = k.trim().to_string();
+    // Giá trị dán từ nguồn NFD vẫn phải xuất ra NFC; từ tắt NFD vẫn phải khớp.
+    let k = crate::chars::nfc(k.trim());
+    let v = crate::chars::nfc(&v);
     if k.is_empty() || k.chars().count() > 64 || v.chars().count() > 4096 {
         return;
     }

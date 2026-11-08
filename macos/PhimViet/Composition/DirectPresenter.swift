@@ -9,21 +9,28 @@ public final class DirectPresenter: Presenter {
 
     public init() {}
 
-    public func update(_ text: String, client: TextClient) -> Bool {
+    private static func result(_ r: DirectEdit.Outcome) -> PresentResult {
+        switch r {
+        case .abandoned: return .abandoned
+        case .unverified: return .unverified
+        default: return .ok
+        }
+    }
+
+    public func update(_ text: String, client: TextClient) -> PresentResult {
         let r = DirectEdit.edit(from: shown, to: text, client: client)
         lastOutcome = r
-        if case .abandoned = r { return false }
-        shown = text
-        return true
+        let res = Self.result(r)
+        shown = res == .ok ? text : ""
+        return res
     }
 
     @discardableResult
-    public func commit(_ text: String, client: TextClient) -> Bool {
+    public func commit(_ text: String, client: TextClient) -> PresentResult {
         let r = DirectEdit.edit(from: shown, to: text, client: client)
         lastOutcome = r
         shown = ""
-        if case .abandoned = r { return false }
-        return true
+        return Self.result(r)
     }
 
     public func abandon(client: TextClient) {

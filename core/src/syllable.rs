@@ -38,8 +38,8 @@ pub const RHYMES: &[&str] = &[
 
 /// Vần đứng sau `qu` (âm đệm `u` đã thuộc phụ âm đầu).
 pub const QU_RHYMES: &[&str] = &[
-    "a", "ac", "ach", "ai", "am", "an", "ang", "anh", "ap", "at", "ay", //
-    "ăc", "ăm", "ăn", "ăng", "ăt", //
+    "a", "ac", "ach", "ai", "am", "an", "ang", "anh", "ao", "ap", "at", "au", "ay", //
+    "ăc", "ăm", "ăn", "ăng", "ăp", "ăt", //
     "e", "en", "eo", "et", //
     "ân", "âng", "ât", "ây", //
     "ê", "êch", "ênh", "ên", "êt", //

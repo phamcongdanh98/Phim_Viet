@@ -12,12 +12,14 @@
 | E6 | Từ đang gõ trông "lạ" trong lúc gõ tiếng Anh | `data` hiện `dât` trước khi chốt | Khi chốt sẽ khôi phục `data` |
 | E7 | Một số vần hiếm được chấp nhận rộng (ví dụ `coa`, `boa`) | — | Bảng vần ưu tiên không chặn nhầm từ thật/mượn |
 | E8 | Từ > 64 phím bị "đóng băng" (không biến đổi thêm) | giữ phím lặp | Chặn chi phí O(n²) |
+| E9 | ESC / tự khôi phục sau Backspace dùng phím thô dựng lại | `nguoi72` ⌫ ESC → `ngu7o72` | DECISIONS D7 |
 
 ## Shell macOS
 
 | # | Vấn đề | Chi tiết |
 |---|---|---|
-| S1 | Từ đầu tiên trong mỗi app (mỗi phiên) luôn gạch chân | App phải chứng minh đọc lại đúng trước khi được gõ trực tiếp (DECISIONS D6) |
+| S1 | Hai từ đầu tiên trong mỗi app (mỗi phiên) luôn gạch chân | App phải chứng minh đọc lại đúng ở hai vị trí khác nhau trước khi được gõ trực tiếp (DECISIONS D6) |
+| S1b | App đã được tin nhưng sau đó bỏ qua `replacementRange` có thể làm sai **một** từ | Kiểm tra sau khi ghi phát hiện ngay và rút quyền; các từ sau dùng gạch chân |
 | S2 | Tin/không tin tính theo **cả app** (bundle id) | Nếu một ô của app không đọc được (ví dụ thanh URL), cả app về chế độ gạch chân tới khi khởi động lại input method (`pkill -x PhimViet` hoặc đăng xuất) |
 | S3 | Khi gõ trực tiếp, click chuột / đổi app giữa từ thì **không** tự khôi phục tiếng Anh cho từ đó | Con trỏ đã đổi nên không sửa tài liệu (an toàn hơn) |
 | S4 | Terminal/iTerm2 thường luôn ở chế độ gạch chân | Các app này không cho đọc nội dung — đúng thiết kế, không ghi đè |

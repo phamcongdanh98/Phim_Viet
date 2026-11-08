@@ -53,7 +53,8 @@ struct DirectEditTests {
         let c = client("ab vie xyz")
         c.lyingSelection = NSRange(location: 6, length: 0)
         c.sel = NSRange(location: 10, length: 0)
-        #expect(DirectEdit.edit(from: "xyz", to: "xyzz", client: c) == .appended)
+        // con trỏ báo sai cố định → không dịch sau khi chèn → bị phát hiện (rà soát #1)
+        #expect(DirectEdit.edit(from: "xyz", to: "xyzz", client: c) == .unverified(.caretMoved))
         // vị trí 6 không có "xyz" ngay trước → không ghi
         let c2 = client("ab vie xyz")
         c2.lyingSelection = NSRange(location: 6, length: 0)
@@ -105,5 +106,17 @@ struct DirectEditTests {
         let c2 = client("ok abc")
         #expect(DirectEdit.edit(from: "abc", to: "a", client: c2) == .replaced)
         #expect(c2.text == "ok a")
+    }
+
+    @Test func replacementIgnoredByAppIsDetected() {
+        let c = client("xin chao")
+        c.ignoresReplacementRange = true
+        #expect(DirectEdit.edit(from: "chao", to: "chào", client: c) == .unverified(.caretMoved))
+    }
+
+    @Test func appendChecksCaretAdvance() {
+        let c = client("ab")
+        #expect(DirectEdit.edit(from: "", to: "xy", client: c) == .appended)
+        #expect(c.sel.location == 4)
     }
 }

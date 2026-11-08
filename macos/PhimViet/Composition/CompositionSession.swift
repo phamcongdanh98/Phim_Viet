@@ -3,8 +3,9 @@ import Foundation
 /// Điều phối một từ đang gõ: engine ↔ presenter ↔ client.
 ///
 /// - Chọn presenter ở **đầu mỗi từ** và giữ nguyên tới khi chốt.
-/// - Direct chỉ dùng cho app đã chứng minh đọc lại đúng (`ClientTrust`); mọi lần thay chữ đều kiểm chứng.
-/// - Không kiểm chứng được → bỏ từ (không ghi đè), rút quyền app, coi phím hiện tại là đầu từ mới.
+/// - Direct chỉ dùng cho app đã chứng minh đọc lại đúng (`ClientTrust`); mọi lần ghi đều kiểm chứng.
+/// - Không kiểm chứng được trước khi ghi → bỏ từ (không ghi đè), rút quyền app, coi phím hiện tại
+///   là đầu từ mới. Kiểm tra sau khi ghi thất bại → kết thúc từ, rút quyền app.
 /// - Click chuột giữa từ (đếm qua `clickCounter`) → kết thúc từ trước khi xử lý phím tiếp theo.
 public final class CompositionSession {
     public let engine: CompositionEngine
@@ -67,16 +68,22 @@ public final class CompositionSession {
         }
         if let d = p as? DirectPresenter {
             // Engine luôn xoá đúng 1 ký tự hiển thị cuối → để ứng dụng tự xoá (giữ undo của app).
-            if d.appWillDeleteLast(resultingIn: text) {
+            // Chỉ khi không có vùng chọn: có gợi ý bôi đen thì ⌫ của app chỉ xoá phần gợi ý.
+            if client.selectedRange().length == 0, d.appWillDeleteLast(resultingIn: text) {
                 if text.isEmpty { presenter = nil }
                 return false
             }
-            if d.update(text, client: client) {
+            switch d.update(text, client: client) {
+            case .ok:
                 if text.isEmpty { presenter = nil }
                 return true
+            case .unverified:
+                endWordUntrusted(client: client, event: "direct.backspace.unverified")
+                return true
+            case .abandoned:
+                endWordUntrusted(client: client, event: "direct.backspace.abandon")
+                return false
             }
-            abandonDirect(client: client, event: "direct.backspace.abandon")
-            return false
         }
         _ = p.update(text, client: client)
         if text.isEmpty { presenter = nil }
@@ -130,15 +137,21 @@ public final class CompositionSession {
             return false
         case .composing(let text):
             let p = presenter ?? startWord(client: client)
-            if p.update(text, client: client) {
+            switch p.update(text, client: client) {
+            case .ok:
                 if text.isEmpty { presenter = nil }
                 return true
+            case .unverified:
+                // Đã ghi nhưng app không xác nhận đúng → dừng ở đây, không ghi thêm.
+                endWordUntrusted(client: client, event: "direct.unverified")
+                return true
+            case .abandoned:
+                endWordUntrusted(client: client, event: "direct.abandon")
+                guard retry else { return false }
+                // Phím hiện tại là đầu một từ mới.
+                let again = engine.process(key, shift: shift, caps: caps)
+                return route(again, key: key, shift: shift, caps: caps, client: client, retry: false)
             }
-            abandonDirect(client: client, event: "direct.abandon")
-            guard retry else { return false }
-            // Phím hiện tại là đầu một từ mới.
-            let again = engine.process(key, shift: shift, caps: caps)
-            return route(again, key: key, shift: shift, caps: caps, client: client, retry: false)
         case .commit(let text, let passThrough):
             finish(text, client: client)
             return !passThrough
@@ -162,21 +175,22 @@ public final class CompositionSession {
         }
         presenter = nil
         let bundle = client.bundleIdentifier
-        if !p.commit(text, client: client) {
+        let markedStart = p.kind == .marked ? client.markedRange().location : nil
+        if p.commit(text, client: client) != .ok {
             trust.revoke(bundle)
-            onEvent("direct.commit.abandon")
+            onEvent("direct.commit.unverified")
             return
         }
-        // Chứng minh: sau khi chốt bằng Marked, đọc lại tài liệu phải thấy đúng chữ vừa chèn.
+        // Chứng minh: sau khi chốt bằng Marked, con trỏ phải ở cuối chữ vừa chèn và đọc lại đúng chữ đó.
         if p.kind == .marked, directTypingEnabled, clientReadable, !bundle.isEmpty, !text.isEmpty,
            trust.state(bundle) == .unknown {
-            let ok = ClientTrust.readBack(text, client: client)
-            trust.record(bundle, proved: ok)
+            let ok = ClientTrust.proveAfterCommit(text, markedStart: markedStart, client: client)
+            trust.record(bundle, proved: ok, position: (markedStart ?? 0) + text.utf16.count)
             onEvent(ok ? "trust.proved" : "trust.failed")
         }
     }
 
-    private func abandonDirect(client: TextClient, event: String) {
+    private func endWordUntrusted(client: TextClient, event: String) {
         trust.revoke(client.bundleIdentifier)
         onEvent(event)
         presenter = nil
@@ -199,12 +213,18 @@ public final class CompositionSession {
             p.abandon(client: client)
             reset()
         case .marked:
-            if case .commit(let text, _) = engine.commit(.mouse) {
-                presenter = nil
-                p.commit(text, client: client)
-            } else {
+            // App có thể đã tự chốt marked text khi click (không gọi commitComposition):
+            // chèn lại sẽ nhân đôi chữ → chỉ chốt khi vẫn còn marked text.
+            let m = client.markedRange()
+            guard m.location != NSNotFound, m.length > 0,
+                  case .commit(let text, _) = engine.commit(.mouse)
+            else {
+                onEvent("click.marked.gone")
                 reset()
+                return
             }
+            presenter = nil
+            p.commit(text, client: client)
         }
     }
 }

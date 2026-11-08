@@ -9,7 +9,7 @@ Checklist chạy trên máy thật sau `make install`. Ghi kết quả vào cộ
 3. Mở log trong một Terminal (dùng app khác để gõ thử):
    `log stream --level debug --predicate 'subsystem == "com.phimviet.inputmethod.PhimViet"'`
    Sự kiện cần để ý: `trust.proved` / `trust.failed` (app có được gõ trực tiếp không), `direct.abandon` (đã bỏ từ thay vì ghi đè).
-4. Ở mỗi app, **từ đầu tiên luôn gạch chân** (đang kiểm chứng app); từ thứ hai trở đi mới gõ trực tiếp nếu app đạt.
+4. Ở mỗi app, **hai từ đầu tiên luôn gạch chân** (đang kiểm chứng app); từ thứ ba trở đi mới gõ trực tiếp nếu app đạt.
 5. Lặp lại một lượt với **Gõ không gạch chân = tắt** cho các app quan trọng (chế độ gạch chân thuần).
 
 ## Các tình huống

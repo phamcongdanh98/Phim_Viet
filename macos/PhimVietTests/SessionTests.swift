@@ -6,7 +6,7 @@ import Testing
 struct SessionTests {
     func trusted(_ bundle: String = "com.example.editor") -> ClientTrust {
         let t = ClientTrust()
-        t.record(bundle, proved: true)
+        t.trustForTesting(bundle)
         return t
     }
 
@@ -16,11 +16,13 @@ struct SessionTests {
         let t = Typist(client: c, trust: trust)
         t.type("tieengs ")
         #expect(c.text == "tiếng ")
+        #expect(trust.state(c.bundleIdentifier) == .unknown)  // cần chứng minh lần hai
+        t.type("ddi ")
         #expect(trust.state(c.bundleIdentifier) == .trusted)
         c.writes.removeAll()
         t.type("vieejt ")
-        #expect(c.text == "tiếng việt ")
-        #expect(!c.writes.contains("mark"))  // từ thứ hai gõ trực tiếp
+        #expect(c.text == "tiếng đi việt ")
+        #expect(!c.writes.contains("mark"))  // sau hai lần chứng minh: gõ trực tiếp
         #expect(c.marked.location == NSNotFound)
     }
 
@@ -216,5 +218,70 @@ struct SessionTests {
                 #expect(!c.text.unicodeScalars.contains { (0x300...0x36F).contains($0.value) })
             }
         }
+    }
+
+    // --- hồi quy rà soát độc lập
+
+    @Test func constantLyingCaretWithShortWordIsNeverTrusted() {
+        // #1: app luôn báo (1,0); từ 1 ký tự "a" trùng hợp với tài liệu → trước đây được tin và ghi đè
+        let c = FakeClient()
+        c.lyingSelection = NSRange(location: 1, length: 0)
+        let trust = ClientTrust()
+        let t = Typist(client: c, trust: trust)
+        t.type("a ")
+        #expect(trust.state(c.bundleIdentifier) != .trusted)
+        t.type("awn ")
+        #expect(c.text == "a ăn ")
+    }
+
+    @Test func appIgnoringReplacementRangeLosesTrustImmediately() {
+        // #2: lần thay đầu tiên bị app chèn sai chỗ → phát hiện ngay, các từ sau về Marked
+        let c = FakeClient()
+        c.ignoresReplacementRange = true
+        let trust = ClientTrust()
+        let t = Typist(client: c, trust: trust)
+        t.type("xin mowif ")
+        #expect(trust.state(c.bundleIdentifier) == .trusted)
+        t.type("chaof ")
+        #expect(trust.state(c.bundleIdentifier) == .distrusted)
+        t.type("banj ")
+        #expect(c.text.hasSuffix(" bạn "))
+    }
+
+    @Test func markedTextAlreadyCommittedByAppIsNotInsertedTwice() {
+        // #3: app tự chốt marked khi click, không gọi commitComposition
+        let c = FakeClient()
+        var clicks = 0
+        let t = Typist(client: c, direct: false, clicks: { clicks })
+        t.type("vieet")
+        c.dropMarked()
+        clicks += 1
+        c.moveCaret(to: 0)
+        t.type("x")
+        t.finish()
+        #expect(c.text == "xviêt")
+    }
+
+    @Test func markedTextStillPresentAfterClickIsCommitted() {
+        let c = FakeClient()
+        var clicks = 0
+        let t = Typist(client: c, direct: false, clicks: { clicks })
+        t.type("vieejt")
+        clicks += 1
+        t.type("a")
+        t.finish()
+        #expect(c.text == "việta")
+        #expect(c.marked.location == NSNotFound)
+    }
+
+    @Test func backspaceWithSelectedSuggestionIsHandledByIME() {
+        // #4: thanh URL "vie|XYZ" (bôi đen) — ⌫ của app chỉ xoá gợi ý
+        let c = FakeClient()
+        c.suggestion = { doc in doc.hasSuffix(" ") || doc.isEmpty ? nil : "XYZ" }
+        let t = Typist(client: c, trust: trusted())
+        t.type("vie\u{8}e ")
+        #expect(c.text == "vie ")
+        t.type("tieengs\u{8}g ")
+        #expect(c.text == "vie tiếng ")
     }
 }

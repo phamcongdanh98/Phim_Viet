@@ -241,8 +241,76 @@ pub fn decompose(c: char) -> Option<(char, Mark, Tone, bool)> {
     None
 }
 
+/// Chuẩn hoá NFC cho chữ Latin/tiếng Việt: gộp chữ gốc + dấu kết hợp (U+0300 U+0301 U+0302
+/// U+0303 U+0306 U+0309 U+031B U+0323) thành ký tự dựng sẵn. Ký tự khác giữ nguyên.
+/// (Thư viện chuẩn Rust không có chuẩn hoá Unicode; engine chỉ cần phần tiếng Việt.)
+pub fn nfc(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let mut it = s.chars().peekable();
+    while let Some(c) = it.next() {
+        let mut marks = Vec::new();
+        while let Some(&m) = it.peek() {
+            if (0x300..=0x36F).contains(&(m as u32)) {
+                marks.push(m);
+                it.next();
+            } else {
+                break;
+            }
+        }
+        if marks.is_empty() {
+            out.push(c);
+            continue;
+        }
+        let composed = decompose(c).and_then(|(b, mut mk, mut t, up)| {
+            for m in &marks {
+                let (new_mk, new_t) = match m {
+                    '\u{300}' => (None, Some(Tone::Grave)),
+                    '\u{301}' => (None, Some(Tone::Acute)),
+                    '\u{303}' => (None, Some(Tone::Tilde)),
+                    '\u{309}' => (None, Some(Tone::Hook)),
+                    '\u{323}' => (None, Some(Tone::Dot)),
+                    '\u{302}' => (Some(Mark::Circumflex), None),
+                    '\u{306}' => (Some(Mark::Breve), None),
+                    '\u{31B}' => (Some(Mark::Horn), None),
+                    _ => return None,
+                };
+                if let Some(x) = new_mk {
+                    if mk != Mark::None {
+                        return None;
+                    }
+                    mk = x;
+                }
+                if let Some(x) = new_t {
+                    if t != Tone::None {
+                        return None;
+                    }
+                    t = x;
+                }
+            }
+            compose(b, mk, t, up)
+        });
+        match composed {
+            Some(x) => out.push(x),
+            None => {
+                out.push(c);
+                out.extend(marks);
+            }
+        }
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn nfc_composes_vietnamese() {
+        assert_eq!(super::nfc("vie\u{323}\u{302}t"), "việt");
+        assert_eq!(super::nfc("Vie\u{302}\u{323}t Nam"), "Việt Nam");
+        assert_eq!(super::nfc("u\u{31B}o\u{31B}\u{300}ng"), "ường");
+        assert_eq!(super::nfc("x\u{301}"), "x\u{301}");
+        assert_eq!(super::nfc("đc"), "đc");
+    }
+
     use super::*;
 
     #[test]

@@ -120,6 +120,10 @@ const TELEX: &[(&str, &str)] = &[
     ("queen", "quên"),
     ("quets", "quét"),
     ("quow", "quơ"),
+    ("quawps", "quắp"),
+    ("quawpj", "quặp"),
+    ("quaoj", "quạo"),
+    ("quauj", "quạu"),
     ("giaf", "già"),
     ("gieengs", "giếng"),
     ("gieets", "giết"),
@@ -133,7 +137,13 @@ const TELEX: &[(&str, &str)] = &[
     ("giawtj", "giặt"),
     ("gias", "giá"),
     ("gisa", "giá"),
-    // --- uơ / ươ
+    // --- uơ / ươ (hồi quy rà soát #5, #6)
+    ("dduwocj", "được"),
+    ("nguwoif", "người"),
+    ("truwongf", "trường"),
+    ("thuwowr", "thuở"),
+    ("huwow", "huơ"),
+    ("muwowif", "mười"),
     ("huow", "huơ"),
     ("thuowr", "thuở"),
     ("thuowrng", "thưởng"),
@@ -205,6 +215,9 @@ const TELEX: &[(&str, &str)] = &[
     ("Dduwowngf", "Đường"),
     ("Ddaf", "Đà"),
     ("W", "Ư"),
+    ("Ww", "W"),
+    ("WW", "W"),
+    ("wW", "w"),
     ("Tw", "Tư"),
     ("TW", "TƯ"),
     ("QUOOCS", "QUỐC"),
@@ -401,6 +414,8 @@ const VNI: &[(&str, &str)] = &[
     ("D9", "Đ"),
     ("d9", "đ"),
     ("thuo73", "thuở"),
+    ("thu7o73", "thuở"),
+    ("d9u7oc5", "được"),
     ("huo7", "huơ"),
     ("quo61c", "quốc"),
     ("quoc61", "quốc"),
@@ -513,6 +528,13 @@ fn macros() {
     assert_eq!(typed(&c, "ddc"), "được");
     assert_eq!(typed(&c, "toi o hn."), "toi o Hà Nội.");
     assert_eq!(typed(&c, "vnx"), "vnx");
+    // gõ tắt có giá trị / từ tắt dạng NFD → vẫn khớp và xuất NFC (hồi quy rà soát #10)
+    let nfd = phimviet_core::Config::from_json(
+        r#"{"macros":{"\u0111c":"\u0111u\u031bo\u031b\u0323c","vie\u0323\u0302t":"Vie\u0323\u0302t Nam"}}"#,
+    )
+    .unwrap();
+    assert_eq!(typed(&nfd, "ddc"), "được");
+    assert_eq!(typed(&nfd, "vieejt"), "Việt Nam");
     // ESC không bung gõ tắt
     assert_eq!(typed(&c, "vn\u{1b}"), "vn");
     c.macros_enabled = false;

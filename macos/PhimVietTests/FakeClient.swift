@@ -19,6 +19,8 @@ final class FakeClient: TextClient {
     var autocorrect: ((String) -> String)?
     /// Gợi ý tự hoàn thành: sau mỗi lần chèn, app thêm phần gợi ý được bôi đen sau con trỏ.
     var suggestion: ((String) -> String?)?
+    /// App bỏ qua `replacementRange`, luôn chèn tại con trỏ.
+    var ignoresReplacementRange = false
 
     var reads = 0
     var writes: [String] = []
@@ -68,7 +70,7 @@ final class FakeClient: TextClient {
         if marked.location != NSNotFound {
             target = marked
             marked = notFoundRange
-        } else if replacementRange.location == NSNotFound {
+        } else if replacementRange.location == NSNotFound || ignoresReplacementRange {
             target = sel
         } else {
             target = replacementRange
@@ -89,7 +91,6 @@ final class FakeClient: TextClient {
 
     /// Ứng dụng tự xử lý phím mà IME trả lại (`handle` → false).
     func appHandles(_ key: String) {
-        clearSuggestion()
         if key == "\u{8}" {
             if sel.length > 0 {
                 replace(sel, with: "")
@@ -102,9 +103,15 @@ final class FakeClient: TextClient {
             return
         }
         if key == "\u{1b}" { return }
+        clearSuggestion()
         replace(sel, with: key)
         sel = NSRange(location: sel.location + (key as NSString).length, length: 0)
         afterEdit()
+    }
+
+    /// App tự chốt marked text (ví dụ khi click) mà không báo cho IME.
+    func dropMarked() {
+        marked = notFoundRange
     }
 
     /// Đặt con trỏ (mô phỏng click chuột).

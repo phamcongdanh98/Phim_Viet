@@ -5,16 +5,25 @@ public enum PresenterKind: Equatable {
     case direct
 }
 
+/// Kết quả hiển thị/chốt của presenter.
+public enum PresentResult: Equatable {
+    case ok
+    /// Không kiểm chứng được → không ghi gì (Direct).
+    case abandoned
+    /// Đã ghi nhưng kiểm tra sau khi ghi thất bại (Direct) → kết thúc từ, rút quyền app.
+    case unverified
+}
+
 /// Cách hiển thị chữ đang gõ của một từ.
 public protocol Presenter: AnyObject {
     var kind: PresenterKind { get }
     /// Chuỗi đang hiển thị cho từ hiện tại.
     var shown: String { get }
-    /// Hiển thị chuỗi mới. `false` → presenter đã bỏ từ (không ghi gì).
-    func update(_ text: String, client: TextClient) -> Bool
-    /// Chốt từ bằng `text`. `false` → không áp dụng được (chữ trong tài liệu giữ nguyên như đang hiển thị).
+    /// Hiển thị chuỗi mới.
+    func update(_ text: String, client: TextClient) -> PresentResult
+    /// Chốt từ bằng `text`.
     @discardableResult
-    func commit(_ text: String, client: TextClient) -> Bool
+    func commit(_ text: String, client: TextClient) -> PresentResult
     /// Kết thúc từ mà không sửa thêm tài liệu (Direct) / chốt chữ đang hiển thị (Marked).
     func abandon(client: TextClient)
 }
@@ -26,18 +35,18 @@ public final class MarkedPresenter: Presenter {
 
     public init() {}
 
-    public func update(_ text: String, client: TextClient) -> Bool {
+    public func update(_ text: String, client: TextClient) -> PresentResult {
         client.setMarkedText(
             text,
             selectionRange: NSRange(location: text.utf16.count, length: 0),
             replacementRange: notFoundRange
         )
         shown = text
-        return true
+        return .ok
     }
 
     @discardableResult
-    public func commit(_ text: String, client: TextClient) -> Bool {
+    public func commit(_ text: String, client: TextClient) -> PresentResult {
         if text.isEmpty {
             if !shown.isEmpty {
                 client.setMarkedText("", selectionRange: NSRange(location: 0, length: 0),
@@ -47,7 +56,7 @@ public final class MarkedPresenter: Presenter {
             client.insertText(text, replacementRange: notFoundRange)
         }
         shown = ""
-        return true
+        return .ok
     }
 
     public func abandon(client: TextClient) {

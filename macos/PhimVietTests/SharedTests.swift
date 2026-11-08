@@ -7,12 +7,18 @@ struct TrustTests {
     @Test func lifecycle() {
         let t = ClientTrust()
         #expect(t.state("a") == .unknown)
+        t.record("b", proved: false, position: 1)
+        #expect(t.state("b") == .distrusted)
         #expect(!t.allowsDirect("a"))
-        t.record("a", proved: true)
+        t.record("a", proved: true, position: 5)
+        #expect(!t.allowsDirect("a"))          // một lần chưa đủ
+        t.record("a", proved: true, position: 5)
+        #expect(!t.allowsDirect("a"))          // cùng vị trí (con trỏ báo sai cố định) không tính
+        t.record("a", proved: true, position: 9)
         #expect(t.allowsDirect("a"))
         t.revoke("a")
         #expect(t.state("a") == .distrusted)
-        t.record("a", proved: true)  // đã mất quyền thì không tự lấy lại trong phiên
+        t.record("a", proved: true, position: 20)  // đã mất quyền thì không tự lấy lại trong phiên
         #expect(!t.allowsDirect("a"))
         t.reset()
         #expect(t.state("a") == .unknown)

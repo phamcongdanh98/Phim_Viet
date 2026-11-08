@@ -95,8 +95,10 @@ sequenceDiagram
 
 - **Chọn presenter ở đầu mỗi từ**, giữ tới khi chốt. Direct chỉ khi: bật "gõ không gạch chân", client báo được
   vị trí con trỏ lúc activate, bundle id khác rỗng, và `ClientTrust` = đã tin.
-- **Chứng minh**: app chưa biết luôn bắt đầu bằng Marked; khi chốt từ đầu tiên, đọc lại chữ ngay trước con trỏ —
-  khớp chính xác thì tin. Một lần không kiểm chứng được khi Direct → mất quyền tới hết phiên.
+- **Chứng minh**: app chưa biết luôn bắt đầu bằng Marked; mỗi lần chốt, con trỏ phải ở đúng cuối chữ vừa chèn
+  (tính từ `markedRange`) và chữ đọc lại phải khớp chính xác. Cần hai lần đạt ở hai vị trí khác nhau.
+  Một lần không kiểm chứng được khi Direct → mất quyền tới hết phiên.
+- **Kiểm tra sau khi ghi**: con trỏ phải dịch đúng độ dài vừa ghi; sau khi thay, đọc lại cả từ. Sai → kết thúc từ, rút quyền.
 - **Chỉ thêm đuôi** (trường hợp phổ biến nhất) → `insertText` tại con trỏ, không đọc tài liệu.
 - **Không lưu vị trí tuyệt đối**: Monaco/Electron có thể dựng lại textarea giữa các phím; vùng từ luôn tính lại
   từ con trỏ hiện tại và độ dài `shown`.

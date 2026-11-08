@@ -7,7 +7,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 O="$ROOT/build/swifttest"
 mkdir -p "$O"
-[ -f build/rust/libphimviet.a ] || scripts/build_rust_universal.sh
+scripts/build_rust_universal.sh   # cargo tự bỏ qua nếu không có gì thay đổi
 
 DEV="$(xcode-select -p)"
 if [ -d "$DEV/Library/Developer/Frameworks/Testing.framework" ]; then

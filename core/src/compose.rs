@@ -68,6 +68,8 @@ pub struct Rendered {
     pub explicit_tail: bool,
     /// Từ bị đóng băng sau backspace (không biến đổi nữa).
     pub frozen: bool,
+    /// Chữ chốt đã sửa nhẹ (khi `T` không hợp lệ nhưng bản sửa hợp lệ).
+    pub committed: Option<String>,
 }
 
 fn action_for(lower: char, cfg: &Config) -> Action {
@@ -113,6 +115,11 @@ pub(crate) fn render(raw: &[KeyInput], cfg: &Config) -> Rendered {
     } else {
         raw_str.clone()
     };
+    let committed = if full_valid {
+        None
+    } else {
+        commit_fix(&letters, st.tone, cfg.tone_style == ToneStyle::New)
+    };
     Rendered {
         display,
         transformed,
@@ -121,6 +128,7 @@ pub(crate) fn render(raw: &[KeyInput], cfg: &Config) -> Rendered {
         full_valid,
         explicit_tail,
         frozen: false,
+        committed,
     }
 }
 
@@ -335,9 +343,11 @@ fn horn_breve(
     if has_ours {
         // Huỷ: bỏ dấu do phím này tạo, bỏ `ư` đã chèn, thêm phím như chữ thường.
         let mut out = Vec::with_capacity(st.letters.len());
+        let mut removed_upper = None;
         for (i, l) in st.letters.iter().enumerate() {
             if i >= s && i < e && ours(l) {
                 if l.inserted {
+                    removed_upper = Some(l.upper);
                     continue;
                 }
                 let mut l = *l;
@@ -349,7 +359,13 @@ fn horn_breve(
             }
         }
         st.letters = out;
-        return undo_with_literal(st, ch, lower);
+        // `Ww` → `W`: chữ còn lại mang hoa/thường của phím `w` đầu tiên (đã tạo `Ư`).
+        let lit = match removed_upper {
+            Some(true) => ch.to_ascii_uppercase(),
+            Some(false) => ch.to_ascii_lowercase(),
+            None => ch,
+        };
+        return undo_with_literal(st, lit, lower);
     }
     if let Some(c) = applicable.first() {
         let c = (*c).clone();
@@ -370,10 +386,22 @@ fn horn_breve(
     Effect::Normal
 }
 
-/// `ươ` (móc `u` ngầm định) không có chữ theo sau → `uơ` (ENGINE_RULES §4.7).
+/// Chuẩn hoá cặp `uo` có móc (ENGINE_RULES §4.7):
+/// - `ư` + `o` + chữ theo sau → `ươ` (`dduwocj` → `được`, `truwongf` → `trường`);
+/// - `ươ` đứng cuối từ với móc `u` ngầm định → `uơ` (`thuowr` → `thuở`). Móc tường minh
+///   (`thuwowr`) chỉ được chuẩn hoá lúc chốt — xem `commit_fix`.
 fn normalize(letters: &[Letter]) -> Vec<Letter> {
     let mut out = letters.to_vec();
     let n = out.len();
+    for i in 0..n.saturating_sub(2) {
+        if out[i].base == 'u'
+            && out[i].mark == Mark::Horn
+            && out[i + 1].base == 'o'
+            && out[i + 1].mark == Mark::None
+        {
+            out[i + 1].mark = Mark::Horn;
+        }
+    }
     if n >= 2 {
         let (u, o) = (out[n - 2], out[n - 1]);
         if u.base == 'u'
@@ -387,4 +415,30 @@ fn normalize(letters: &[Letter]) -> Vec<Letter> {
         }
     }
     out
+}
+
+/// Chữ chốt thay thế khi `T` không hợp lệ nhưng sửa nhẹ thì hợp lệ:
+/// `ươ` cuối từ có móc tường minh sau `h th kh` → `uơ` (`thuwowr` → `thuở`).
+fn commit_fix(letters: &[Letter], tone: Tone, new_style: bool) -> Option<String> {
+    let n = letters.len();
+    if n < 3 {
+        return None;
+    }
+    let (u, o) = (letters[n - 2], letters[n - 1]);
+    if !(u.base == 'u' && u.mark == Mark::Horn && o.base == 'o' && o.mark == Mark::Horn) {
+        return None;
+    }
+    let mut fixed = letters.to_vec();
+    fixed[n - 2].mark = Mark::None;
+    if !is_valid_full(&fixed, tone) {
+        return None;
+    }
+    let tpos = tone_position(&fixed, new_style);
+    Some(
+        fixed
+            .iter()
+            .enumerate()
+            .map(|(i, l)| l.render(if Some(i) == tpos { tone } else { Tone::None }))
+            .collect(),
+    )
 }

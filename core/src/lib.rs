@@ -241,6 +241,9 @@ impl Engine {
                 return x;
             }
         }
+        if let Some(fixed) = &r.committed {
+            return fixed.clone();
+        }
         if !r.frozen && self.config.auto_restore && !r.full_valid && !r.explicit_tail {
             return r.raw.clone();
         }

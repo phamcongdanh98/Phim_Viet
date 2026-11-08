@@ -62,11 +62,42 @@ Mỗi mục: **Bối cảnh → Quyết định → Lý do**. Mục mới thêm 
 
 ## D6. Trình bày chữ: chứng minh trước khi gõ trực tiếp
 
-- App chưa biết → dùng **Marked** cho từ đầu tiên. Khi chốt từ đó, đọc lại tài liệu
-  (`selectedRange` + `attributedSubstring`) — khớp chính xác (so từng đơn vị UTF-16, không so tương đương
-  Unicode) → app được tin, từ sau dùng **Direct**. Không khớp → Marked cho app đó tới hết phiên.
-- Direct: mỗi lần cần thay (không chỉ thêm đuôi) đều đọc và so khớp lại; sai → bỏ từ, rút quyền.
+- App chưa biết → dùng **Marked**. Khi chốt mỗi từ: con trỏ phải nằm đúng tại `markedRange().location` (lấy
+  trước khi chèn) + độ dài chữ chèn, và đọc lại chữ ngay trước con trỏ khớp chính xác (so từng đơn vị UTF-16,
+  không so tương đương Unicode). Cần **hai lần thành công ở hai vị trí khác nhau** mới được tin (app báo con trỏ
+  sai cố định chỉ trùng hợp được ở một vị trí — lỗi do rà soát độc lập tìm ra). Thất bại → Marked tới hết phiên.
+- Direct: trước mỗi lần thay (không chỉ thêm đuôi) đọc và so khớp; **sau mỗi lần ghi** kiểm tra con trỏ dịch đúng độ dài
+  vừa ghi, sau khi thay còn đọc lại cả từ. Sai trước khi ghi → bỏ từ; sai sau khi ghi → kết thúc từ; cả hai đều rút quyền.
 - Backspace khi Direct: engine luôn xoá đúng 1 ký tự hiển thị cuối → **để ứng dụng tự xoá** (trả phím cho app),
   chỉ cập nhật `shown`. Không cần đọc tài liệu, giữ được lịch sử hoàn tác của app.
+- Backspace khi có vùng chọn sau con trỏ (gợi ý tự hoàn thành): không trả cho app (app chỉ xoá phần gợi ý) mà sửa
+  qua bước kiểm chứng.
+- Click khi Marked: chỉ chốt nếu `markedRange()` vẫn còn (app có thể đã tự chốt → chèn lại sẽ nhân đôi chữ).
 - Click/đổi app khi Direct: chỉ "quên" từ (không sửa tài liệu vì con trỏ đã đổi), nên tự khôi phục tiếng Anh
   chỉ áp dụng khi kết thúc từ bằng phím.
+
+## D7. Phím thô sau Backspace
+
+- **Bối cảnh:** sau Backspace engine dựng lại raw chuẩn (ví dụ `nguoi72` ⌫ → raw `ngu7o72`); phím thô gốc không còn
+  tương ứng với chữ còn lại.
+- **Quyết định:** ESC và tự khôi phục sau Backspace dùng **raw chuẩn dựng lại** (ghi ở ENGINE_RULES §8–9).
+- **Lý do:** không có cách ánh xạ "phím đã gõ" sang chữ còn lại sau khi xoá; raw chuẩn luôn gõ lại ra đúng chữ đang
+  hiển thị, và thường chính là chuỗi tiếng Anh người dùng muốn (`tẽt` ⌫ `t` → khôi phục `text`).
+
+## D8. Kết quả rà soát độc lập (subagent)
+
+11 vấn đề; đã sửa 10, 1 ghi thành quy tắc (D7). Mỗi lỗi có test hồi quy:
+
+| # | Vấn đề | Xử lý | Test |
+|---|---|---|---|
+| 1 | Con trỏ sai cố định + từ ngắn → được tin → ghi đè | Chứng minh cần con trỏ đúng + 2 vị trí; kiểm tra con trỏ sau mỗi lần ghi | `constantLyingCaretWithShortWordIsNeverTrusted` |
+| 2 | Không kiểm tra sau khi thay; app bỏ qua `replacementRange` | Đọc lại sau khi thay → rút quyền ngay | `appIgnoringReplacementRangeLosesTrustImmediately`, `replacementIgnoredByAppIsDetected` |
+| 3 | Marked bị chèn lại khi app đã tự chốt lúc click | Kiểm tra `markedRange()` | `markedTextAlreadyCommittedByAppIsNotInsertedTwice` |
+| 4 | Backspace khi có gợi ý bôi đen | Không trả cho app khi có vùng chọn | `backspaceWithSelectedSuggestionIsHandledByIME` |
+| 5 | `dduwocj`, `nguwoif`, `truwongf` | `ư` + `o` + chữ sau → `ươ` | `hard_cases` |
+| 6 | `thuwowr` chốt ra phím thô | Sửa nhẹ lúc chốt (`commit_fix`) | `hard_cases` |
+| 7 | Thiếu `quắp`, `quạo`, `quạu` | Thêm vần `ăp ao au` sau `qu` | `hard_cases` |
+| 8 | Phím thô sau Backspace là raw dựng lại | Quy tắc D7 | — |
+| 9 | `Ww` → `w` | Giữ hoa/thường của phím `w` đầu | `hard_cases` |
+| 10 | Gõ tắt NFD | `chars::nfc` khi nạp gõ tắt | `macros`, `nfc_composes_vietnamese` |
+| 11 | Script không build lại Rust | Luôn gọi `build_rust_universal.sh` (cargo tự bỏ qua) | — |

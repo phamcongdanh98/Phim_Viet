@@ -15,7 +15,7 @@ BUILD_NUM="$(git rev-list --count HEAD 2>/dev/null || echo 1)"
 ARCHS=(arm64 x86_64)
 SWIFTFLAGS=(-sdk "$SDK" -swift-version 5 -O -whole-module-optimization)
 
-[ -f build/rust/libphimviet.a ] || scripts/build_rust_universal.sh
+scripts/build_rust_universal.sh   # cargo tự bỏ qua nếu không có gì thay đổi
 
 rm -rf "$APP" "$OBJ"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$SET/Contents/MacOS" "$SET/Contents/Resources" "$OBJ"

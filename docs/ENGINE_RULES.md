@@ -123,9 +123,11 @@ Vần kết thúc bằng `c ch p t` chỉ đi với thanh **sắc** hoặc **n�
    (`â`+`a`, thanh sắc + `s`, `đ`+`d`, `ư`+`w`, VNI `á`+`1`…) → bỏ biến đổi đó, thêm phím
    như **chữ thường**, và phím đó bị vô hiệu (chỉ là chữ thường) cho tới hết từ.
    `aaa→aa`, `ass→as`, `ddd→dd`, `ww→w`, `a11→a1`.
-7. **`uơ`/`ươ`**: khi `w`/`7` áp lên cặp `uo` thì móc của `u` là "ngầm định". Nếu sau `ơ` không
-   còn chữ nào (không có âm cuối) → hiển thị `uơ` (`thuowr` → `thuở`, `huow` → `huơ`);
-   có âm cuối → `ươ` (`thuowng` → `thương`). Móc gõ tường minh (`thuwowr`) giữ nguyên.
+7. **`uơ`/`ươ`** (hàm `normalize`):
+   - `w`/`7` áp lên cặp `uo` thì móc của `u` là "ngầm định". Nếu sau `ơ` không còn chữ nào → hiển thị `uơ`
+     (`thuowr` → `thuở`, `huow` → `huơ`); có chữ theo sau → `ươ` (`thuowng` → `thương`).
+   - `ư` + `o` + chữ theo sau → `ươ` (`dduwocj` → `được`, `truwongf` → `trường`).
+   - Móc gõ tường minh ở cuối từ (`thuwowr`) hiển thị `thưở`, khi chốt sửa thành `thuở` (§7).
 
 ## 5. Đặt thanh
 
@@ -165,7 +167,8 @@ Thứ tự:
 2. **Tự khôi phục tiếng Anh** (bật mặc định): nếu `T` không hợp lệ đầy đủ và không ở đuôi huỷ
    tường minh → trả **phím thô** (`text`, `with`, `expect`, `user`, `push`, `wow`).
    Từ vừa hợp lệ tiếng Việt vừa là tiếng Anh (`mix→mĩ`, `box→bõ`, `test→tét`) giữ tiếng Việt.
-3. Ngược lại giữ chữ đang hiển thị.
+3. Ngoại lệ: `ươ` cuối từ có móc tường minh sau `h th kh` → chốt thành `uơ` (`thuwowr` → `thuở`).
+4. Ngược lại giữ chữ đang hiển thị.
 
 ## 8. Backspace
 
@@ -180,6 +183,7 @@ Xoá **1 ký tự hiển thị** cuối. Raw mới được dựng lại:
 
 ## 9. ESC
 Đang có từ dở → thay bằng đúng phím thô đã gõ, kết thúc từ, phím ESC bị nuốt.
+Sau Backspace, "phím thô" là raw chuẩn dựng lại ở §8 (DECISIONS D7).
 
 ## 10. Hoa/thường
 Mỗi chữ cái giữ hoa/thường của phím tạo ra nó; phím dấu/thanh không đổi hoa thường
