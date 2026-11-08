@@ -126,3 +126,15 @@ Mỗi mục: **Bối cảnh → Quyết định → Lý do**. Mục mới thêm 
 - **Sửa dấu từ trước** (trước đây nằm ngoài phạm vi v1, người dùng yêu cầu): sau khi ⌫ đi qua ranh giới từ, phím chữ tiếp theo
   đọc từ ngay trước con trỏ, `pv_load_word` nạp lại (chỉ khi raw chuẩn gõ ra đúng từ đó — từ tiếng Anh như `with`, `data`
   không được nạp), rồi tiếp tục bằng Direct với kiểm chứng như thường. Chỉ ở app đã được tin; chế độ gạch chân không có.
+
+## D11. Chrome lần 3: `length() = 0`; huỷ dấu khi tắt kiểm tra âm tiết (2026-11-09)
+
+- **Log thực tế sau D10:** Chrome và VSCode đã được tin (`trust.proved.late` ×2) nhưng ngay lần thay chữ đầu tiên lại
+  `direct.abandon`, chẩn đoán `documentTooShort ... doc=0`. Chromium/Electron trả `length() = 0` cho IMK (không hỗ trợ),
+  nên kiểm tra "tài liệu ngắn hơn vị trí con trỏ" luôn trượt → bỏ từ, rút quyền → quay về gạch chân.
+  **Sửa:** `length() = 0` được coi là "không biết" (`DirectEdit.verifiedRegion`); an toàn vẫn dựa vào đọc lại đúng chữ
+  trước con trỏ (đọc sai → `mismatch`, không ghi). Độ dài > 0 nhưng ngắn hơn con trỏ vẫn bị chặn như cũ.
+  Log `direct.abandon`/`direct.unverified` nay kèm lý do + số liệu.
+- **`delete` → `delte` khi tắt kiểm tra âm tiết:** phím `e` cuối được coi là "huỷ tường minh" (vì tắt kiểm tra thì mọi
+  biến đổi đều hiện ra) nên không khôi phục. Nay huỷ tường minh cần: biến đổi bị huỷ là chữ Việt hợp lệ, hoặc gõ lặp
+  ngay (`aaa`, `ss`). Bộ 309 từ tiếng Anh khi tắt kiểm tra âm tiết: 295 → 297 (`delete`, `border`).

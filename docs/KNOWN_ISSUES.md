@@ -26,6 +26,8 @@
 | S5 | Phím có ⌥ Option được trả cho app (chốt từ trước) | Bàn phím dùng ⌥ để gõ ký tự đặc biệt vẫn hoạt động, nhưng không đi qua engine |
 | S6 | Chỉ kiểm tra với bố cục bàn phím ABC/US | Bố cục khác có thể sinh ký tự khác cho cùng phím |
 | S8 | Sửa dấu từ trước (⌫ qua dấu cách rồi gõ dấu) chỉ có ở app gõ thẳng được | Chế độ gạch chân không đọc/sửa văn bản đã chốt |
+| S9 | Chrome/Electron/VSCode trả `length() = 0` | Phím Việt coi là "không biết" và chỉ dựa vào đọc lại chữ (DECISIONS D11) |
+| S10 | Tắt "Kiểm tra âm tiết" làm từ tiếng Anh nhảy chữ lạ trong lúc gõ (`delete` hiện `dêlt`) | Khi chốt vẫn khôi phục đúng; ở app gõ thẳng mỗi lần nhảy là một lần thay chữ. Nên bật kiểm tra âm tiết |
 | S7 | ⌘Z hoàn tác theo cách của từng app | Khi gõ trực tiếp, mỗi lần thay chữ là một bước `insertText` của app |
 
 ## Môi trường build (máy phát triển hiện tại)

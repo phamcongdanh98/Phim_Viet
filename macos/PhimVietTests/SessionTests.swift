@@ -387,4 +387,52 @@ struct SessionTests {
         #expect(!c.writes.contains("mark"))
         #expect(c.text == "hôm nay là thứ hai ")
     }
+
+    // MARK: Chrome thật (log trên máy người dùng): con trỏ báo trễ, đọc chữ đồng bộ, `length()` = 0.
+
+    func chrome() -> FakeClient {
+        let c = FakeClient()
+        c.bundleIdentifier = "com.google.Chrome"
+        c.lagging = true
+        c.contentFresh = true
+        c.lyingLength = 0
+        return c
+    }
+
+    static let userConfig =
+        #"{"method":"telex","tone_style":"old","spell_check":false,"auto_restore":true,"w_as_u":true}"#
+
+    @Test func chromeZeroLengthGetsTrustedAndStaysDirect() {
+        let c = chrome()
+        let trust = ClientTrust()
+        let t = Typist(client: c, trust: trust)
+        t.session.engine.setConfig(json: Self.userConfig)
+        t.type("hoom nay ")
+        #expect(trust.state(c.bundleIdentifier) == .trusted)
+        c.writes.removeAll()
+        t.type("laf thuws hai delete vieejt ")
+        #expect(c.text == "hôm nay là thứ hai delete việt ")
+        #expect(!c.writes.contains("mark"))
+        #expect(trust.state(c.bundleIdentifier) == .trusted)
+    }
+
+    @Test func chromeRewindAfterSpace() {
+        let c = chrome()
+        let trust = trusted(c.bundleIdentifier)
+        let t = Typist(client: c, trust: trust)
+        t.session.engine.setConfig(json: Self.userConfig)
+        t.type("may \u{8}as ")
+        #expect(c.text == "mấy ")
+        t.type("may \u{8}fa ")
+        #expect(c.text == "mấy mầy ")
+        #expect(trust.state(c.bundleIdentifier) == .trusted)
+    }
+
+    @Test func englishWordsWithSpellCheckOffInDirectMode() {
+        let c = chrome()
+        let t = Typist(client: c, trust: trusted(c.bundleIdentifier))
+        t.session.engine.setConfig(json: Self.userConfig)
+        t.type("delete select release border ")
+        #expect(c.text == "delete select release border ")
+    }
 }

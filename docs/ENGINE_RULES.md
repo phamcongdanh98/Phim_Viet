@@ -149,11 +149,13 @@ Gọi `T` = kết quả áp phím. Hiển thị:
 - `T` nếu tắt kiểm tra âm tiết, hoặc `T` hợp lệ tiền tố, hoặc từ đang ở **đuôi huỷ tường minh**;
 - ngược lại hiển thị **phím thô** (`wit`, `class`, `issu`).
 
-**Đuôi huỷ tường minh**: phím vừa huỷ một biến đổi mà người dùng *đã nhìn thấy*
-(trước phím đó đang hiển thị `T`), mọi phím sau đó đều là cùng phím ấy
+**Đuôi huỷ tường minh**: phím vừa huỷ một biến đổi mà người dùng *có chủ ý* — trước phím đó
+`T` là chữ Việt hợp lệ tiền tố, **hoặc** (khi tắt kiểm tra âm tiết) phím huỷ gõ lặp ngay sau phím
+vừa biến đổi (`aaa`, `ass`) — mọi phím sau đó đều là cùng phím ấy
 (`ass`, `asss`, `aaa`, `ww`), **và** `T` sau huỷ là chữ ASCII thuần.
 Gõ phím khác → hết đuôi huỷ (`issue` → hiển thị thô). `express` → `êps` không phải ASCII
-→ không công nhận → khôi phục `express`.
+→ không công nhận → khôi phục `express`. Tắt kiểm tra âm tiết: `delete` hiện `dêlt` rồi `e` huỷ dấu mũ,
+nhưng `dêlt` không hợp lệ và `e` không gõ lặp ngay → không công nhận → chốt `delete` (không phải `delte`).
 
 **Từ không có nguyên âm** (`đ`, `đc`, `đt` — viết tắt thường gặp): luôn hiển thị `T`,
 không bị khôi phục khi chốt (`dd` → `đ`; muốn `dd` gõ `ddd`).

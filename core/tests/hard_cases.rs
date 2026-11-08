@@ -622,3 +622,23 @@ fn long_word_freezes() {
     assert!(e.composing().chars().count() <= 500);
     assert!(e.composing().chars().all(|c| c == 'a' || c == 'â'));
 }
+
+/// Tắt kiểm tra âm tiết: chữ gõ lại chỉ là "huỷ tường minh" khi gõ lặp ngay hoặc biến đổi bị huỷ
+/// là chữ Việt hợp lệ — `delete` không được thành `delte`.
+#[test]
+fn spell_check_off_undo_is_not_explicit_mid_word() {
+    let mut c = old_style(telex());
+    c.spell_check = false;
+    for (keys, want) in [
+        ("delete", "delete"),
+        ("border", "border"),
+        ("aaa", "aa"),
+        ("ddd", "dd"),
+        ("ass", "as"),
+        ("vieee", "viee"),
+        ("tieengs", "tiếng"),
+        ("hoaf", "hòa"),
+    ] {
+        assert_eq!(typed(&c, keys), want, "{keys}");
+    }
+}

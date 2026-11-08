@@ -85,6 +85,18 @@ struct DirectEditTests {
         #expect(DirectEdit.edit(from: "vie", to: "viê", client: c).0 == .abandoned(.documentTooShort))
     }
 
+    @Test func zeroLengthMeansUnknownNotEmpty() {
+        // Chrome/Electron trả `length() = 0`: không được coi là tài liệu rỗng; vẫn đọc lại để kiểm chứng.
+        let c = client("vie")
+        c.lyingLength = 0
+        #expect(DirectEdit.edit(from: "vie", to: "viê", client: c).0 == .replaced)
+        #expect(c.text == "viê")
+        let c2 = client("via")
+        c2.lyingLength = 0
+        #expect(DirectEdit.edit(from: "vie", to: "viê", client: c2).0 == .abandoned(.mismatch))
+        #expect(c2.text == "via")
+    }
+
     @Test func nfdDocumentIsNotConfusedWithNFC() {
         // Tài liệu chứa "viê" dạng NFD (4 đơn vị UTF-16); `==` của Swift coi là bằng nhau, ta thì không.
         let c = client("vie\u{0302}")

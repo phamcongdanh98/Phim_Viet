@@ -39,6 +39,8 @@ struct State {
     tone: Tone,
     disabled: Vec<char>,
     undo_tail: Option<char>,
+    /// Phím (chữ thường) ngay trước phím đang xét.
+    prev: Option<char>,
 }
 
 impl State {
@@ -148,9 +150,14 @@ fn step(st: &mut State, ch: char, cfg: &Config) {
     let effect = apply(st, ch, lower, action);
     match effect {
         Effect::Undo => {
+            // Huỷ "tường minh" khi biến đổi bị huỷ là chữ Việt hợp lệ, hoặc (tắt kiểm tra âm tiết)
+            // khi gõ lặp ngay phím vừa biến đổi (`aaa`, `ss`). `dêlt` + `e` (gõ "delete") không
+            // phải huỷ tường minh → khi chốt được khôi phục thành phím thô.
             let shown = match before {
                 Some((letters, tail)) => {
-                    !cfg.spell_check || tail.is_some() || is_valid_prefix(&letters)
+                    tail.is_some()
+                        || is_valid_prefix(&letters)
+                        || (!cfg.spell_check && st.prev == Some(lower))
                 }
                 None => false,
             };
@@ -162,6 +169,7 @@ fn step(st: &mut State, ch: char, cfg: &Config) {
             }
         }
     }
+    st.prev = Some(lower);
 }
 
 fn cluster(letters: &[Letter]) -> (usize, usize) {

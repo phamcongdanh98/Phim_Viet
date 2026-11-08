@@ -220,7 +220,7 @@ public final class CompositionSession {
         let bundle = client.bundleIdentifier
         if p.commit(text, client: client) != .ok {
             trust.revoke(bundle)
-            onEvent("direct.commit.unverified")
+            onEvent("direct.commit.unverified \(bundle) \(Self.detail(p, client: client))")
             return
         }
         if let d = p as? DirectPresenter, let pend = d.pending {
@@ -266,9 +266,24 @@ public final class CompositionSession {
 
     private func endWordUntrusted(client: TextClient, event: String) {
         trust.revoke(client.bundleIdentifier)
-        onEvent(event)
+        onEvent("\(event) \(client.bundleIdentifier) \(Self.detail(presenter, client: client))")
         presenter = nil
         engine.reset()
+    }
+
+    /// Chẩn đoán cho log: lý do + vị trí con trỏ + độ dài (chỉ số liệu, không có nội dung gõ).
+    private static func detail(_ p: Presenter?, client: TextClient) -> String {
+        let sel = client.selectedRange()
+        let loc = sel.location == NSNotFound ? -1 : sel.location
+        var reason = ""
+        if let d = p as? DirectPresenter {
+            switch d.lastOutcome {
+            case .abandoned(let r): reason = "abandoned.\(r)"
+            case .unverified(let r): reason = "unverified.\(r)"
+            default: reason = "\(d.lastOutcome)"
+            }
+        }
+        return "\(reason) sel=\(loc),\(sel.length) doc=\(client.documentLength() ?? -1)"
     }
 
     private func endWordIfClicked(client: TextClient) {

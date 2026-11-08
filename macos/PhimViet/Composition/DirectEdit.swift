@@ -55,7 +55,9 @@ public enum DirectEdit {
               sel.location >= 0, sel.location <= Int(Int32.max)
         else { return .failure(.noSelection) }
         guard sel.location >= n else { return .failure(.caretBeforeWord) }
-        if let len = client.documentLength(), len < sel.location + sel.length {
+        // Chrome/Electron luôn trả `length() = 0` (không hỗ trợ) → coi 0 là "không biết";
+        // an toàn vẫn được bảo đảm bởi bước đọc lại chữ ngay bên dưới.
+        if let len = client.documentLength(), len > 0, len < sel.location + sel.length {
             return .failure(.documentTooShort)
         }
         let start = sel.location - n
