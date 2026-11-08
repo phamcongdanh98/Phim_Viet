@@ -1,0 +1,6 @@
+/target
+/build
+/macos/.build
+/macos/*.xcodeproj
+.DS_Store
+*.swp
