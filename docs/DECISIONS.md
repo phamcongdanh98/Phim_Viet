@@ -111,3 +111,8 @@ Mỗi mục: **Bối cảnh → Quyết định → Lý do**. Mục mới thêm 
   Nay: con trỏ đúng ngay → xong; con trỏ *chưa đổi* → lưu `Pending` và kiểm ở lần sửa/phím kế tiếp (trước khi ghi);
   con trỏ ở chỗ khác → rút quyền. App báo sai vẫn bị bắt (chậm một phím). Test `laggingChromiumLikeAppStillTypesDirect`,
   `laggingAppThatLiesIsStillCaught`, `leftoverWriteIsVerifiedOnNextWord`.
+- **Chrome báo `markedRange()` theo toạ độ riêng** → chứng minh sai từ từ thứ hai. Nay chứng minh chỉ dựa vào
+  `selectedRange()` + đọc lại sau khi chốt (vẫn cần 2 vị trí khác nhau). Test `chromeLikeMarkedRangeStillProves`.
+- **⌘A phải bấm 2 lần trên Chrome:** chốt marked text trong lúc xử lý keyDown của phím tắt làm Chrome bỏ qua phím tắt.
+  Nay chốt ngay khi `flagsChanged` báo vừa nhấn ⌘/⌃/⌥ (trước keyDown).
+- Sự kiện chẩn đoán (không có nội dung gõ) ghi mức `notice` để `log show` đọc lại được.

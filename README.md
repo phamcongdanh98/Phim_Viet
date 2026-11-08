@@ -87,7 +87,7 @@ scripts/uninstall.sh --keep-settings # gỡ nhưng giữ cài đặt, gõ tắt
 ## Xem log
 
 ```bash
-log stream --level debug --predicate 'subsystem == "com.phimviet.inputmethod.PhimViet"'
+log stream --predicate 'subsystem == "com.phimviet.inputmethod.PhimViet"'
 ```
 
 Log chỉ có tên sự kiện (`trust.proved`, `direct.abandon`, `click.endword`, `mode V/E`…), **không** có nội dung gõ.

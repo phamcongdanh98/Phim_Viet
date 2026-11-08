@@ -24,6 +24,8 @@ final class FakeClient: TextClient {
     /// App báo trễ (Chromium/Electron): `selectedRange`/đọc tài liệu trả trạng thái lúc bắt đầu phím,
     /// chỉ cập nhật khi `tick()` (giữa hai phím).
     var lagging = false
+    /// `markedRange()` báo theo toạ độ riêng (luôn bắt đầu từ 0), như Chrome.
+    var markedRangeFromZero = false
     private var snapDoc = ""
     private var snapSel = NSRange(location: 0, length: 0)
 
@@ -38,7 +40,9 @@ final class FakeClient: TextClient {
     var text: String { doc as String }
 
     func selectedRange() -> NSRange { lyingSelection ?? (lagging ? snapSel : sel) }
-    func markedRange() -> NSRange { marked }
+    func markedRange() -> NSRange {
+        markedRangeFromZero && marked.location != NSNotFound ? NSRange(location: 0, length: marked.length) : marked
+    }
     func documentLength() -> Int? { lyingLength ?? doc.length }
 
     func text(in range: NSRange) -> String? {

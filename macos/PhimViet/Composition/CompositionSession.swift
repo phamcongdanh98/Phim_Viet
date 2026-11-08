@@ -191,7 +191,6 @@ public final class CompositionSession {
         }
         presenter = nil
         let bundle = client.bundleIdentifier
-        let markedStart = p.kind == .marked ? client.markedRange().location : nil
         if p.commit(text, client: client) != .ok {
             trust.revoke(bundle)
             onEvent("direct.commit.unverified")
@@ -203,8 +202,9 @@ public final class CompositionSession {
         // Chứng minh: sau khi chốt bằng Marked, con trỏ phải ở cuối chữ vừa chèn và đọc lại đúng chữ đó.
         if p.kind == .marked, directTypingEnabled, clientReadable, !bundle.isEmpty, !text.isEmpty,
            trust.state(bundle) == .unknown {
-            let ok = ClientTrust.proveAfterCommit(text, markedStart: markedStart, client: client)
-            trust.record(bundle, proved: ok, position: (markedStart ?? 0) + text.utf16.count)
+            let pos = ClientTrust.proveAfterCommit(text, client: client)
+            let ok = pos != nil
+            trust.record(bundle, proved: ok, position: pos ?? -1)
             onEvent(ok ? "trust.proved" : "trust.failed")
         }
     }

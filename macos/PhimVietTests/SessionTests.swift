@@ -327,4 +327,19 @@ struct SessionTests {
         t.type("b")
         #expect(trust.state(c.bundleIdentifier) == .distrusted)
     }
+
+    @Test func chromeLikeMarkedRangeStillProves() {
+        // Ảnh chụp người dùng: Chrome, "hôm nay là" — từ thứ ba vẫn gạch chân vì markedRange sai toạ độ.
+        let c = FakeClient()
+        c.lagging = true
+        c.markedRangeFromZero = true
+        let trust = ClientTrust()
+        let t = Typist(client: c, trust: trust)
+        t.type("hoom nay ")
+        #expect(trust.state(c.bundleIdentifier) == .trusted)
+        c.writes.removeAll()
+        t.type("laf ")
+        #expect(!c.writes.contains("mark"))
+        #expect(c.text == "hôm nay là ")
+    }
 }

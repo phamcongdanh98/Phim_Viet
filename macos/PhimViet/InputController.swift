@@ -17,7 +17,8 @@ final class PhimVietInputController: IMKInputController {
         }
         session = CompositionSession(engine: engine, trust: AppState.shared.trust)
         session.clickCounter = { AppState.shared.clicks.count }
-        session.onEvent = { event in Log.input.debug("\(event, privacy: .public)") }
+        // Chỉ tên sự kiện (không có nội dung gõ) → ghi mức notice để `log show` đọc lại được.
+        session.onEvent = { event in Log.input.notice("\(event, privacy: .public)") }
         applyPreferences()
         NotificationCenter.default.addObserver(
             self, selector: #selector(preferencesChanged), name: AppState.didChange, object: nil)
@@ -56,6 +57,12 @@ final class PhimVietInputController: IMKInputController {
         guard let event, let client = IMKTextClient(sender) else { return false }
         switch event.type {
         case .flagsChanged:
+            // Vừa nhấn ⌘/⌃/⌥ khi đang có từ dở → chốt NGAY, trước khi phím tắt (⌘A, ⌘C…) tới.
+            // Nếu đợi tới keyDown, Chrome thấy chữ được chèn trong lúc xử lý phím và bỏ qua phím tắt.
+            if session.isComposing,
+               !event.modifierFlags.intersection([.command, .control, .option]).isEmpty {
+                session.commit(.other, client: client)
+            }
             if toggle.flagsChanged(UInt(event.modifierFlags.rawValue)) {
                 setVietnamese(!vietnamese, remember: true, client: client)
             }

@@ -65,13 +65,12 @@ public final class ClientTrust {
         return false
     }
 
-    /// Chứng minh sau khi chốt marked text: con trỏ phải nằm đúng ở cuối chữ vừa chèn
-    /// (`markedStart` + độ dài — vị trí lấy từ `markedRange()` TRƯỚC khi chèn) và đọc lại đúng chữ đó.
-    /// So nội dung thôi không đủ: app báo con trỏ sai cố định có thể trùng hợp với từ ngắn.
-    public static func proveAfterCommit(_ text: String, markedStart: Int?, client: TextClient) -> Bool {
-        guard let start = markedStart, start != NSNotFound, start >= 0 else { return false }
-        guard client.selectedRange().location == start + text.utf16.count else { return false }
-        return readBack(text, client: client)
+    /// Chứng minh sau khi chốt marked text: chữ ngay trước con trỏ phải đúng là chữ vừa chèn.
+    /// Trả vị trí con trỏ nếu đạt. KHÔNG dựa vào `markedRange()` — Chrome báo nó theo hệ toạ độ riêng.
+    /// Một lần đạt chưa đủ: `record` cần hai vị trí khác nhau (chặn app báo con trỏ sai cố định).
+    public static func proveAfterCommit(_ text: String, client: TextClient) -> Int? {
+        guard readBack(text, client: client) else { return nil }
+        return client.selectedRange().location
     }
 
     /// Client có báo vị trí con trỏ không (kiểm tra lúc activate).
