@@ -4,3 +4,5 @@
 /macos/*.xcodeproj
 .DS_Store
 *.swp
+/.build
+/.swiftpm
