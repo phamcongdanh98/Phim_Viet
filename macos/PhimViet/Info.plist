@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>vi</string>
+	<key>CFBundleExecutable</key>
+	<string>PhimViet</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.phimviet.inputmethod.PhimViet</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>Phím Việt</string>
+	<key>CFBundleDisplayName</key>
+	<string>Phím Việt</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>13.0</string>
+	<key>LSBackgroundOnly</key>
+	<true/>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>© Phím Việt — Giấy phép MIT</string>
+	<key>InputMethodConnectionName</key>
+	<string>com.phimviet.inputmethod.PhimViet_Connection</string>
+	<key>InputMethodServerControllerClass</key>
+	<string>PhimVietInputController</string>
+	<key>InputMethodServerDelegateClass</key>
+	<string>PhimVietInputController</string>
+	<key>TISIntendedLanguage</key>
+	<string>vi</string>
+	<key>TISInputSourceID</key>
+	<string>com.phimviet.inputmethod.PhimViet</string>
+	<key>tsInputMethodCharacterRepertoireKey</key>
+	<array>
+		<string>Latn</string>
+	</array>
+	<key>TISIconIsTemplate</key>
+	<true/>
+	<key>tsInputMethodIconFileKey</key>
+	<string>MenuIcon.tiff</string>
+	<key>ComponentInputModeDict</key>
+	<dict>
+		<key>tsInputModeListKey</key>
+		<dict>
+			<key>com.phimviet.inputmethod.PhimViet.vi</key>
+			<dict>
+				<key>TISInputSourceID</key>
+				<string>com.phimviet.inputmethod.PhimViet.vi</string>
+				<key>TISIntendedLanguage</key>
+				<string>vi</string>
+				<key>tsInputModeScriptKey</key>
+				<string>smRoman</string>
+				<key>tsInputModeCharacterRepertoireKey</key>
+				<array>
+					<string>Latn</string>
+				</array>
+				<key>tsInputModeIsVisibleKey</key>
+				<true/>
+				<key>tsInputModeDefaultStateKey</key>
+				<true/>
+				<key>tsInputModePrimaryInScriptKey</key>
+				<true/>
+				<key>TISIconIsTemplate</key>
+				<true/>
+				<key>tsInputModeMenuIconFileKey</key>
+				<string>MenuIcon.tiff</string>
+				<key>tsInputModeAlternateMenuIconFileKey</key>
+				<string>MenuIcon.tiff</string>
+				<key>tsInputModePaletteIconFileKey</key>
+				<string>MenuIcon.tiff</string>
+			</dict>
+		</dict>
+		<key>tsVisibleInputModeOrderedArrayKey</key>
+		<array>
+			<string>com.phimviet.inputmethod.PhimViet.vi</string>
+		</array>
+	</dict>
+</dict>
+</plist>

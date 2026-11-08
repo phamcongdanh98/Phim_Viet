@@ -1,0 +1,64 @@
+# XcodeGen — chỉ dùng khi có Xcode đầy đủ (make xcode; USE_XCODE=1 make build).
+# Đường build chính không cần Xcode: scripts/build_bundle.sh. (Chưa kiểm chứng trên máy không có Xcode.)
+name: PhimViet
+options:
+  bundleIdPrefix: com.phimviet
+  deploymentTarget:
+    macOS: "13.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    ARCHS: "arm64 x86_64"
+    ONLY_ACTIVE_ARCH: NO
+    CODE_SIGN_IDENTITY: "-"
+    CODE_SIGN_STYLE: Manual
+    ENABLE_HARDENED_RUNTIME: YES
+targets:
+  PhimVietSettings:
+    type: application
+    platform: macOS
+    sources:
+      - PhimVietSettings
+      - PhimViet/Settings
+      - PhimViet/Shared
+    settings:
+      base:
+        INFOPLIST_FILE: PhimVietSettings/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.phimviet.PhimVietSettings
+        PRODUCT_NAME: PhimVietSettings
+  PhimViet:
+    type: application
+    platform: macOS
+    sources:
+      - path: PhimViet
+        excludes:
+          - "Settings/**"
+          - "Info.plist"
+    dependencies:
+      - target: PhimVietSettings
+        embed: false
+    settings:
+      base:
+        INFOPLIST_FILE: PhimViet/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.phimviet.inputmethod.PhimViet
+        PRODUCT_NAME: PhimViet
+        SWIFT_INCLUDE_PATHS: $(SRCROOT)/../build/rust
+        LIBRARY_SEARCH_PATHS: $(SRCROOT)/../build/rust
+        OTHER_LDFLAGS: -lphimviet
+    preBuildScripts:
+      - name: Rust universal
+        script: '"$SRCROOT/../scripts/build_rust_universal.sh"'
+        basedOnDependencyAnalysis: false
+    postBuildScripts:
+      - name: Icon + Helpers
+        script: |
+          set -e
+          R="$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH"
+          swiftc -O "$SRCROOT/../scripts/make_icon.swift" -o "$DERIVED_FILE_DIR/make_icon"
+          "$DERIVED_FILE_DIR/make_icon" "$R/Resources/MenuIcon.tiff"
+          mkdir -p "$R/Helpers"
+          rm -rf "$R/Helpers/PhimVietSettings.app"
+          cp -R "$BUILT_PRODUCTS_DIR/PhimVietSettings.app" "$R/Helpers/"
+        basedOnDependencyAnalysis: false
