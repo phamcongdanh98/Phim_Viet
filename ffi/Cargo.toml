@@ -1,0 +1,12 @@
+[package]
+name = "phimviet-ffi"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[lib]
+name = "phimviet"
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+phimviet-core = { path = "../core" }

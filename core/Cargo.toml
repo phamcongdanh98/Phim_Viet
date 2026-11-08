@@ -1,0 +1,12 @@
+[package]
+name = "phimviet-core"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Lõi engine bộ gõ tiếng Việt Phím Việt (thuần, tất định, 0 dependency)"
+
+[lib]
+name = "phimviet_core"
+path = "src/lib.rs"
+
+[dependencies]
