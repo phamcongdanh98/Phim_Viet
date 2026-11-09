@@ -23,4 +23,5 @@ PHÍM TẮT
 GỠ CÀI ĐẶT
   Bấm đúp "Gỡ cài đặt Phím Việt.command".
 
+Tác giả: Danh Phạm - 0356719463
 Mã nguồn & báo lỗi: https://github.com/phamcongdanh98/Phim_Viet

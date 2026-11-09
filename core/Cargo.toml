@@ -2,6 +2,7 @@
 name = "phimviet-core"
 version = "0.1.0"
 edition = "2021"
+authors = ["Danh Phạm - 0356719463"]
 license = "MIT"
 description = "Lõi engine bộ gõ tiếng Việt Phím Việt (thuần, tất định, 0 dependency)"
 

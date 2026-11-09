@@ -1,4 +1,8 @@
+<p align="center"><img src="docs/images/icon.png" width="160" alt="Biểu tượng Phím Việt"></p>
+
 # Phím Việt
+
+Tác giả: **Danh Phạm - 0356719463**
 
 Bộ gõ tiếng Việt cho macOS, viết bằng **InputMethodKit** (chuẩn input method của Apple) với lõi xử lý bằng Rust.
 
@@ -151,6 +155,6 @@ xcrun stapler staple build/PhimViet.app
 - Bản Windows / Linux / iOS
 - Tự cập nhật (Sparkle)
 
-## Giấy phép
+## Tác giả & giấy phép
 
-[MIT](LICENSE). Mã nguồn viết mới hoàn toàn (clean-room); không sao chép mã từ dự án GPL/AGPL.
+Tác giả: **Danh Phạm - 0356719463**. [Giấy phép MIT](LICENSE). Mã nguồn viết mới hoàn toàn (clean-room); không sao chép mã từ dự án GPL/AGPL.

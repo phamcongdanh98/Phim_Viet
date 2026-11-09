@@ -178,6 +178,7 @@ struct AboutTab: View {
                 .multilineTextAlignment(.center)
             Text("Riêng tư: không kết nối mạng, không thu thập dữ liệu, không ghi nội dung bạn gõ.")
                 .multilineTextAlignment(.center).font(.callout).foregroundStyle(.secondary)
+            Text("Tác giả: Danh Phạm - 0356719463").font(.callout.weight(.medium))
             Text("Giấy phép MIT").font(.caption)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -6,6 +6,8 @@
 	<string>vi</string>
 	<key>CFBundleExecutable</key>
 	<string>PhimViet</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.phimviet.inputmethod.PhimViet</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -27,7 +29,7 @@
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>© Phím Việt — Giấy phép MIT</string>
+	<string>© 2026 Danh Phạm - 0356719463 · Giấy phép MIT</string>
 	<key>InputMethodConnectionName</key>
 	<string>com.phimviet.inputmethod.PhimViet_Connection</string>
 	<key>InputMethodServerControllerClass</key>

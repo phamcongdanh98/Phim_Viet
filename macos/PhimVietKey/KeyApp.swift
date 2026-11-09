@@ -283,6 +283,7 @@ final class KeyApp: NSObject, NSApplicationDelegate {
         add("Mở cùng máy", #selector(menuLogin), on: SMAppService.mainApp.status == .enabled)
         add("Cài đặt…", #selector(menuSettings))
         m.addItem(.separator())
+        add("Tác giả: Danh Phạm - 0356719463", nil)
         add("Thoát Phím Việt Key", #selector(menuQuit))
         return m
     }

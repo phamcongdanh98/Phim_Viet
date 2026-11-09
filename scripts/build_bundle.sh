@@ -57,6 +57,14 @@ sed -e "s/\$(MARKETING_VERSION)/$VERSION/" -e "s/\$(CURRENT_PROJECT_VERSION)/$BU
 printf 'APPL????' > "$KEY/Contents/PkgInfo"
 cp -R macos/PhimViet/Resources/*.lproj "$APP/Contents/Resources/"
 
+# Biểu tượng ứng dụng (.icns) vẽ lúc build: Phím Việt · Phím Việt Key (tia sét) · Cài đặt (bánh răng).
+[ -x "$B/make_app_icon" ] && [ "$B/make_app_icon" -nt scripts/make_app_icon.swift ] || \
+    swiftc -O scripts/make_app_icon.swift -o "$B/make_app_icon"
+"$B/make_app_icon" main "$APP/Contents/Resources/AppIcon.icns"
+"$B/make_app_icon" key "$KEY/Contents/Resources/AppIcon.icns"
+"$B/make_app_icon" settings "$SET/Contents/Resources/AppIcon.icns"
+rm -f "$APP/Contents/Resources/AppIcon.png" "$KEY/Contents/Resources/AppIcon.png" "$SET/Contents/Resources/AppIcon.png"
+
 # Biểu tượng menu (template TIFF 16/32 px) vẽ lúc build.
 [ -x "$B/make_icon" ] && [ "$B/make_icon" -nt scripts/make_icon.swift ] || swiftc -O scripts/make_icon.swift -o "$B/make_icon"
 "$B/make_icon" "$APP/Contents/Resources/MenuIcon.tiff"
