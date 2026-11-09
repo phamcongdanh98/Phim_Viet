@@ -238,7 +238,10 @@ final class KeyApp: NSObject, NSApplicationDelegate {
     private func updateStatus() {
         guard let it = statusItem else { return }
         let permitted = tap.isRunning
-        it.button?.title = !permitted ? "V!" : !layoutActive ? "V–" : (vietnamese ? "V" : "E")
+        // Đang nghỉ vì người dùng chọn bộ gõ khác (vd. Phím Việt bản IMK — đã có biểu tượng V riêng):
+        // ẩn đi để thanh menu chỉ có MỘT chữ V.
+        it.isVisible = !permitted || layoutActive
+        it.button?.title = !permitted ? "V!" : (vietnamese ? "V" : "E")
         it.menu = buildMenu(permitted: permitted)
     }
 

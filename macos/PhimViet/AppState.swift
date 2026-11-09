@@ -1,3 +1,4 @@
+import Carbon
 import Cocoa
 
 /// Bản địa hoá: khoá là chuỗi tiếng Việt (ngôn ngữ phát triển), `en.lproj` dịch sang tiếng Anh.
@@ -26,12 +27,34 @@ final class AppState {
     func start() {
         clicks.start()
         activeVietnamese = store.defaultVietnamese
-        statusItem.setVisible(prefs.showStatusItem)
+        refreshStatusItem()
         DistributedNotificationCenter.default().addObserver(
             self, selector: #selector(externalChange),
             name: PreferencesStore.changedNotification, object: nil,
             suspensionBehavior: .deliverImmediately)
+        DistributedNotificationCenter.default().addObserver(
+            self, selector: #selector(inputSourceChanged),
+            name: Notification.Name(kTISNotifySelectedKeyboardInputSourceChanged as String), object: nil,
+            suspensionBehavior: .deliverImmediately)
         Log.app.info("started, engine \(RustEngine.version, privacy: .public)")
+    }
+
+    @objc private func inputSourceChanged() {
+        DispatchQueue.main.async { [weak self] in self?.refreshStatusItem() }
+    }
+
+    /// Biểu tượng V/E chỉ hiện khi Phím Việt (input method) đang được chọn — chọn ABC (dùng Phím Việt Key)
+    /// thì ẩn, để thanh menu không có hai chữ V.
+    private func refreshStatusItem() {
+        statusItem.setVisible(prefs.showStatusItem && Self.isSelectedInputSource())
+    }
+
+    static func isSelectedInputSource() -> Bool {
+        guard let src = TISCopyCurrentKeyboardInputSource()?.takeRetainedValue(),
+              let p = TISGetInputSourceProperty(src, kTISPropertyInputSourceID)
+        else { return true }
+        let id = Unmanaged<CFString>.fromOpaque(p).takeUnretainedValue() as String
+        return id.hasPrefix(Bundle.main.bundleIdentifier ?? "com.phimviet.inputmethod.PhimViet")
     }
 
     @objc private func externalChange(_ n: Notification) {
@@ -44,7 +67,7 @@ final class AppState {
         let old = prefs
         prefs = store.load()
         if prefs.directTyping && !old.directTyping { trust.reset() }
-        statusItem.setVisible(prefs.showStatusItem)
+        refreshStatusItem()
         NotificationCenter.default.post(name: Self.didChange, object: nil)
         Log.app.info("preferences reloaded")
     }
@@ -56,7 +79,7 @@ final class AppState {
         guard prefs != old else { return }
         if prefs.directTyping && !old.directTyping { trust.reset() }
         store.save(prefs)
-        statusItem.setVisible(prefs.showStatusItem)
+        refreshStatusItem()
         NotificationCenter.default.post(name: Self.didChange, object: nil)
         DistributedNotificationCenter.default().postNotificationName(
             PreferencesStore.changedNotification, object: nil,

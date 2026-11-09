@@ -60,6 +60,9 @@ final class Injector {
     private static let backspaceKey: CGKeyCode = 51
     /// Ký tự "vô hình" dùng để huỷ phần gợi ý đang bôi đen trên thanh địa chỉ trình duyệt.
     private static let breaker = "\u{202F}"
+    /// Không kèm phím bổ trợ nào, NHƯNG giữ `maskNonCoalesced`: thiếu cờ này macOS gộp các phím ⌫ giống hệt nhau
+    /// gửi liền nhau thành một → chỉ xoá được 1 ký tự (lỗi `laf` → `laà` trên Chrome).
+    static let plainFlags: CGEventFlags = .maskNonCoalesced
 
     private func post(_ e: CGEvent) {
         e.setIntegerValueField(.eventSourceUserData, value: kInjectedMarker)
@@ -69,7 +72,7 @@ final class Injector {
     private func tap(_ key: CGKeyCode) {
         for down in [true, false] {
             guard let e = CGEvent(keyboardEventSource: source, virtualKey: key, keyDown: down) else { continue }
-            e.flags = []
+            e.flags = Self.plainFlags
             post(e)
         }
     }
@@ -91,7 +94,7 @@ final class Injector {
             if i > 0, delay > 0 { usleep(delay) }
             for down in [true, false] {
                 guard let e = CGEvent(keyboardEventSource: source, virtualKey: 0, keyDown: down) else { continue }
-                e.flags = []
+                e.flags = Self.plainFlags
                 c.withUnsafeBufferPointer { e.keyboardSetUnicodeString(stringLength: c.count, unicodeString: $0.baseAddress) }
                 post(e)
             }
