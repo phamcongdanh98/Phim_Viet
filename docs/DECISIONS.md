@@ -158,4 +158,13 @@ Mỗi mục: **Bối cảnh → Quyết định → Lý do**. Mục mới thêm 
   dự án và `~/Library/Input Methods`). Người dùng có thể kéo ra `/Applications` nếu muốn.
 - **Chữ ký ad-hoc:** mỗi lần build lại macOS coi là app mới → phải bật lại quyền Trợ năng; `install.sh --key` chạy
   `tccutil reset Accessibility com.phimviet.PhimVietKey` để xoá mục cũ.
+- **Lỗi đầu tiên trên máy thật (2026-11-09):** `laf` → `laà`, `cuoocj` → `cuoôộc`. Đoán ban đầu (macOS gộp các ⌫ vì thiếu
+  `maskNonCoalesced`) là **sai**. Dựng lại được bằng `PhimVietKey --selftest` + ô nhập Cocoa ghi log từng phím: phím gốc
+  (`f`) tới app trước, ⌫ xoá nhầm chính nó. Gốc: `tap.handler = { self?.handle(...) ?? event }` — khi `handle` trả `nil`
+  (nuốt phím), `??` trả lại phím gốc → không phím nào bị nuốt. Đã sửa; `scripts/key_selftest.sh --chrome`
+  (`make key-selftest`) kiểm tra trên ô Cocoa và Chrome riêng (profile tạm): cả tap HID lẫn session đều đúng.
+  Mặc định chọn tap HID (như Gõ Nhanh); `defaults write com.phimviet.PhimVietKey tap session|hid`,
+  `freshSource`, `flags`, `preDelay`, `trace` để đo khi cần.
+- `--selftest` chỉ gõ chuỗi cố định gồm a–z, số, cách, dấu chấm, ⌫ (≤120 phím) và kiểm tra trước MỖI phím rằng app test
+  (pid) đang ở trên cùng — sai thì dừng, không gõ vào app khác.
 

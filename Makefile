@@ -1,5 +1,5 @@
 # Phím Việt — make test | make build | make install | make uninstall
-.PHONY: all test rust-test swift-test ffi-test lint build install install-select install-key uninstall clean bench verify xcode
+.PHONY: all test rust-test swift-test ffi-test lint build install install-select install-key key-selftest uninstall clean bench verify xcode
 
 all: build
 
@@ -38,6 +38,10 @@ install-select: build
 # Cài và mở Phím Việt Key (app chạy riêng, không gạch chân, cần quyền Trợ năng).
 install-key: build
 	scripts/install.sh --key
+
+# Gõ thử thật qua Phím Việt Key (cần quyền Trợ năng, nguồn nhập ABC; đừng chạm bàn phím khi chạy).
+key-selftest:
+	scripts/key_selftest.sh --chrome
 
 uninstall:
 	scripts/uninstall.sh

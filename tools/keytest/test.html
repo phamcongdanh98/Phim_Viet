@@ -1,0 +1,10 @@
+<!doctype html><meta charset="utf-8"><title>PV Chrome Harness</title>
+<textarea id="t" autofocus style="width:600px;height:120px;font-size:22px"></textarea>
+<script>
+const t = document.getElementById('t');
+function send(o){ fetch('/log',{method:'POST',body:JSON.stringify(o)}); }
+t.addEventListener('keydown', e => send({ev:'keydown', key:e.key, code:e.code, rep:e.repeat}));
+t.addEventListener('beforeinput', e => send({ev:'beforeinput', type:e.inputType, data:e.data}));
+t.addEventListener('input', e => send({ev:'input', value:t.value}));
+window.onload = () => { t.focus(); send({ev:'ready'}); };
+</script>

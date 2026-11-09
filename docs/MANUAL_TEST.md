@@ -488,6 +488,7 @@ Checklist chạy trên máy thật sau `make install`. Ghi kết quả vào cộ
 ## Phím Việt Key (app chạy riêng)
 
 Chuẩn bị: `make install-key` → bật quyền Trợ năng → chọn **ABC** trên thanh menu → biểu tượng hiện `V`.
+Kiểm tra tự động trước: `make key-selftest` (gõ giả lập vào ô Cocoa và Chrome profile tạm — đừng chạm bàn phím khi chạy).
 
 | Mã | Tình huống | Cách thử | Kỳ vọng | Kết quả |
 |---|---|---|---|---|

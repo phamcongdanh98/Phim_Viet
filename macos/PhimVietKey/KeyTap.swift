@@ -3,6 +3,22 @@ import Cocoa
 /// Dấu gắn trên mọi phím do Phím Việt Key gửi — để không tự xử lý lại chính nó.
 let kInjectedMarker: Int64 = 0x5056_4B59  // "PVKY"
 
+/// Tham số kỹ thuật (đọc từ `defaults` của com.phimviet.PhimVietKey) — để đo/so sánh trên máy thật
+/// mà không phải build lại. Giá trị mặc định là cấu hình đã chọn.
+struct Tuning {
+    static var d: UserDefaults { .standard }
+    /// "hid" (mặc định) hoặc "session".
+    static var tapLocation: String { d.string(forKey: "tap") ?? "hid" }
+    /// Tạo nguồn sự kiện mới cho mỗi lần thay chữ.
+    static var freshSource: Bool { d.object(forKey: "freshSource") as? Bool ?? true }
+    /// "none": không đụng cờ (mặc định) · "nc": chỉ maskNonCoalesced · "zero": xoá hết.
+    static var flags: String { d.string(forKey: "flags") ?? "none" }
+    /// Chờ (µs) trước phím ⌫ đầu tiên.
+    static var preDelay: UInt32 { UInt32(max(0, d.integer(forKey: "preDelay"))) }
+    /// Ghi nhật ký số liệu từng lần thay chữ (không có nội dung).
+    static var trace: Bool { d.bool(forKey: "trace") }
+}
+
 /// Chặn phím toàn hệ thống (cần quyền Trợ năng / Accessibility).
 /// `handler` trả `nil` để nuốt phím, hoặc trả lại sự kiện để nó đi tiếp.
 final class KeyTap {
@@ -21,11 +37,17 @@ final class KeyTap {
             let me = Unmanaged<KeyTap>.fromOpaque(refcon).takeUnretainedValue()
             return me.handle(type, event)
         }
-        guard let t = CGEvent.tapCreate(
-            tap: .cgSessionEventTap, place: .headInsertEventTap, options: .defaultTap,
-            eventsOfInterest: mask, callback: callback,
-            userInfo: Unmanaged.passUnretained(self).toOpaque())
+        let me = Unmanaged.passUnretained(self).toOpaque()
+        // Tầng HID (trước mọi tầng phiên): phím do mình gửi ở tầng phiên không quay lại tap này.
+        let hid = Tuning.tapLocation != "session"
+        guard let t = (hid ? CGEvent.tapCreate(
+            tap: .cghidEventTap, place: .headInsertEventTap, options: .defaultTap,
+            eventsOfInterest: mask, callback: callback, userInfo: me) : nil)
+            ?? CGEvent.tapCreate(
+                tap: .cgSessionEventTap, place: .headInsertEventTap, options: .defaultTap,
+                eventsOfInterest: mask, callback: callback, userInfo: me)
         else { return false }
+        Log.app.notice("key: tap at \(hid ? "hid" : "session", privacy: .public)")
         tap = t
         source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, t, 0)
         CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
@@ -56,7 +78,7 @@ final class KeyTap {
 
 /// Gửi phím ⌫ và chữ Unicode vào ứng dụng đang dùng.
 final class Injector {
-    private let source = CGEventSource(stateID: .privateState)
+    private var source = CGEventSource(stateID: .privateState)
     private static let backspaceKey: CGKeyCode = 51
     /// Ký tự "vô hình" dùng để huỷ phần gợi ý đang bôi đen trên thanh địa chỉ trình duyệt.
     private static let breaker = "\u{202F}"
@@ -72,8 +94,16 @@ final class Injector {
     private func tap(_ key: CGKeyCode) {
         for down in [true, false] {
             guard let e = CGEvent(keyboardEventSource: source, virtualKey: key, keyDown: down) else { continue }
-            e.flags = Self.plainFlags
+            applyFlags(e)
             post(e)
+        }
+    }
+
+    private func applyFlags(_ e: CGEvent) {
+        switch Tuning.flags {
+        case "nc": e.flags = Self.plainFlags
+        case "zero": e.flags = []
+        default: break  // nguồn riêng (privateState) không mang phím bổ trợ nào của người dùng
         }
     }
 
@@ -94,7 +124,7 @@ final class Injector {
             if i > 0, delay > 0 { usleep(delay) }
             for down in [true, false] {
                 guard let e = CGEvent(keyboardEventSource: source, virtualKey: 0, keyDown: down) else { continue }
-                e.flags = Self.plainFlags
+                applyFlags(e)
                 c.withUnsafeBufferPointer { e.keyboardSetUnicodeString(stringLength: c.count, unicodeString: $0.baseAddress) }
                 post(e)
             }
@@ -103,6 +133,12 @@ final class Injector {
 
     /// Xoá `delete` ký tự trước con trỏ, gõ `insert`, rồi gửi lại phím gốc (nếu có).
     func replace(delete: Int, insert: String, method: InjectionMethod, original: CGEvent?) {
+        if Tuning.freshSource { source = CGEventSource(stateID: .privateState) }
+        if Tuning.trace {
+            Log.app.notice("key: inject del=\(delete) ins=\(insert.count) orig=\(original != nil) m=\(String(describing: method), privacy: .public)")
+        }
+        let pre = Tuning.preDelay
+        if pre > 0 { usleep(pre) }
         var n = delete
         let between: UInt32
         let wait: UInt32
@@ -118,9 +154,9 @@ final class Injector {
                 n += 1
             }
         }
-        for i in 0..<n {
-            if i > 0, between > 0 { usleep(between) }
+        for _ in 0..<n {
             tap(Self.backspaceKey)
+            if between > 0 { usleep(between) }
         }
         if n > 0, !insert.isEmpty { usleep(wait) }
         type(insert, delay: textDelay)

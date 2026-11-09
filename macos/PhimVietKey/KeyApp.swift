@@ -55,7 +55,12 @@ final class KeyApp: NSObject, NSApplicationDelegate {
                        name: Notification.Name(kTISNotifySelectedKeyboardInputSourceChanged as String),
                        object: nil, suspensionBehavior: .deliverImmediately)
 
-        tap.handler = { [weak self] type, event in self?.handle(type, event) ?? event }
+        // KHÔNG viết `self?.handle(type, event) ?? event`: khi handle trả nil (= nuốt phím) thì `??` lại trả
+        // phím gốc → phím không bao giờ bị nuốt, ⌫ gửi sau xoá nhầm chính phím đó (`laf` → `laà`).
+        tap.handler = { [weak self] type, event in
+            guard let self else { return event }
+            return self.handle(type, event)
+        }
         buildStatusItem()
         startWhenPermitted(prompt: true)
     }
