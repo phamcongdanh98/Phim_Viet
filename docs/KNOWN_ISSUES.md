@@ -4,8 +4,8 @@
 
 | # | Vấn đề | Ví dụ | Cách xử lý / lý do |
 |---|---|---|---|
-| E1 | Từ vừa là âm tiết tiếng Việt hợp lệ vừa là từ tiếng Anh được giữ tiếng Việt | `mix→mĩ`, `box→bõ`, `test→tét`, `this→thí`, `if→ì`, `list→lít`, `rust→rút`, `reset→rết`, `theme→thêm`, `row→rơ`, `var→vả`, `how→hơ` | Không có từ điển nên không phân biệt được. Dùng ⌃⇧ chuyển sang E, hoặc ESC để lấy phím thô, hoặc đặt app hay gõ code vào "Luôn gõ tiếng Anh". Tỷ lệ khôi phục trên bộ 300 từ IT: 96,7%; trên `/usr/share/dict/words` (≤10 ký tự): 99,2% |
-| E2 | Gõ đúp ở **cuối** từ tiếng Anh bị hiểu là huỷ dấu | `pass→pas`, `less→les`, `miss→mis` | Không phân biệt được với `ass→as` (huỷ có chủ ý theo đặc tả). Gõ đúp ở giữa từ (`issue`, `lesson`) vẫn khôi phục đúng |
+| E1 | Từ vừa là âm tiết tiếng Việt hợp lệ vừa là từ tiếng Anh được giữ tiếng Việt | `mix→mĩ`, `box→bõ`, `test→tét`, `this→thí`, `if→ì`, `list→lít`, `rust→rút`, `reset→rết`, `theme→thêm`, `row→rơ`, `var→vả`, `how→hơ` | Không có từ điển nên không phân biệt được. Dùng ⌃⇧ chuyển sang E, hoặc ESC để lấy phím thô, hoặc đặt app hay gõ code vào "Luôn gõ tiếng Anh". Gõ đôi phím dấu để ra chữ tiếng Anh: `tesst` → `test`, `thiss` → `this`, `lisst` → `list`. Tỷ lệ khôi phục trên bộ 309 từ IT: 96,8% (299/309, cả khi tắt kiểm tra âm tiết); trên `/usr/share/dict/words` (≤10 ký tự): 99,31% |
+| E2 | ~~Gõ đúp ở cuối từ tiếng Anh bị hiểu là huỷ dấu (`pass→pas`)~~ — đã sửa (DECISIONS D13) | `pass`, `less`, `class`, `success` | Tra danh sách từ tiếng Anh có chữ đôi; `ass` vẫn → `as` theo đặc tả. Từ không có trong danh sách (rất hiếm) vẫn bị huỷ dấu |
 | E3 | `xoong`, `boong` cần gõ `xooong` | `xoong→xông` | `ông/ôc` phổ biến hơn rất nhiều |
 | E4 | `dd` luôn thành `đ` (kể cả khi chốt) | lệnh `dd` | Gõ `ddd` → `dd` |
 | E5 | Gõ `uo`+`w` khi chưa có âm cuối hiện `uơ`, có âm cuối mới thành `ươ` | `nguowi`: `nguơ` → `ngươi` | Chuỗi hiển thị luôn bằng chuỗi sẽ chốt; nháy chữ `u` một lần. Gõ `nguoiw` không nháy |

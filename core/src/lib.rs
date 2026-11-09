@@ -15,6 +15,7 @@
 pub mod chars;
 mod compose;
 pub mod config;
+mod english;
 pub mod json;
 pub mod macros;
 mod restore;
@@ -184,6 +185,12 @@ impl Engine {
             return Output::Composing(String::new());
         }
         let candidates = [
+            // Phím cuối chỉ thêm đúng ký tự vừa xoá → bỏ phím đó, giữ lịch sử gõ (`issu` ⌫ → `iss`, không thành `is`).
+            if self.last.frozen {
+                None
+            } else {
+                Some(self.raw[..self.raw.len() - 1].to_vec())
+            },
             if self.last.frozen {
                 None
             } else {
@@ -261,6 +268,13 @@ impl Engine {
             {
                 return x;
             }
+        }
+        if !r.frozen && r.deliberate_undo {
+            // Gõ đôi để huỷ dấu: từ tiếng Anh thật (`pass`, `issue`) → phím thô; còn lại (`tesst`) → chữ đã huỷ (`test`).
+            if self.config.auto_restore && english::is_word(&r.raw.to_ascii_lowercase()) {
+                return r.raw.clone();
+            }
+            return r.transformed.clone();
         }
         if let Some(fixed) = &r.committed {
             return fixed.clone();

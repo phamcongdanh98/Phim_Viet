@@ -168,3 +168,18 @@ Mỗi mục: **Bối cảnh → Quyết định → Lý do**. Mục mới thêm 
 - `--selftest` chỉ gõ chuỗi cố định gồm a–z, số, cách, dấu chấm, ⌫ (≤120 phím) và kiểm tra trước MỖI phím rằng app test
   (pid) đang ở trên cùng — sai thì dừng, không gõ vào app khác.
 
+## D13. Gõ đôi để huỷ dấu giữa từ + danh sách từ tiếng Anh có chữ đôi (2026-11-09)
+
+- **Vấn đề (người dùng báo):** gõ `tesst` để được `test` (vì `test` → `tét`) nhưng ra `tesst`: đuôi huỷ kết thúc khi gõ `t`,
+  từ không hợp lệ → khôi phục phím thô. Đồng thời `pass/less/miss` → `pas/les/mis` (E2), và khi tắt kiểm tra âm tiết
+  `class/success/address/process` cũng bị huỷ dấu; `basis/oasis` → `bais/oais` (hai `s` cách nhau bị coi là huỷ).
+- **Quyết định:** (1) huỷ tường minh phải gõ **liền**; (2) ghi nhớ "đã gõ đôi để huỷ" cho cả từ (`deliberate_undo`);
+  (3) khi chốt, phân biệt bằng danh sách từ tiếng Anh có chữ đôi (`core/data/en_double.txt`, ~24k từ, 260 KB, nguồn
+  Webster 1934 hết bản quyền): có trong danh sách → phím thô, không có → chữ đã huỷ. (4) ⌫ ưu tiên bỏ phím cuối nếu nó
+  tạo đúng ký tự vừa xoá, giữ lịch sử gõ (`issu` ⌫ `ue` → `issue`).
+- **Đánh đổi:** `ass` vẫn → `as` (ví dụ của đặc tả, không đưa vào danh sách). Từ tiếng Anh không có trong danh sách và
+  có gõ đôi phím dấu sẽ bị huỷ dấu. Không đổi gì khi không có gõ đôi.
+- **Kết quả:** bộ 309 từ IT 299/309 ở cả hai chế độ kiểm tra âm tiết (trước: 298 / 297); từ điển ≤10 ký tự 99,31%
+  (trước 99,25% / 99,09%); số từ ra chữ ASCII sai 92 → 9 (còn lại: `ass` theo đặc tả và từ hiếm có `z`).
+  Tốc độ 1,49 µs/phím.
+

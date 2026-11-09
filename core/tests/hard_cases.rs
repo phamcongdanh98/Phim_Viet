@@ -184,7 +184,7 @@ const TELEX: &[(&str, &str)] = &[
     ("ooo", "oo"),
     ("eee", "ee"),
     ("uww", "uw"),
-    ("off", "of"),
+    ("off", "off"),
     ("iff", "if"),
     ("orr", "or"),
     ("dd", "đ"),
@@ -640,5 +640,44 @@ fn spell_check_off_undo_is_not_explicit_mid_word() {
         ("hoaf", "hòa"),
     ] {
         assert_eq!(typed(&c, keys), want, "{keys}");
+    }
+}
+
+/// Gõ đôi để huỷ dấu giữa từ (`tesst` → `test`) và từ tiếng Anh có sẵn cặp chữ đôi (`pass`, `issue`, `daddy`),
+/// ở cả hai chế độ kiểm tra âm tiết (ENGINE_RULES §6–7).
+#[test]
+fn double_key_undo_vs_english_words() {
+    let mut off = old_style(telex());
+    off.spell_check = false;
+    for c in [telex(), off] {
+        for (keys, want) in [
+            ("tesst", "test"),
+            ("Tesst", "Test"),
+            ("besst", "best"),
+            ("lisst", "list"),
+            ("texxt", "text"),
+            ("thiss", "this"),
+            ("iff", "if"),
+            ("ass", "as"),
+            ("aaa", "aa"),
+            ("pass", "pass"),
+            ("less", "less"),
+            ("class", "class"),
+            ("classes", "classes"),
+            ("success", "success"),
+            ("address", "address"),
+            ("process", "process"),
+            ("issue", "issue"),
+            ("issu\u{8}ue", "issue"),
+            ("off", "off"),
+            ("daddy", "daddy"),
+            ("cocoon", "cocoon"),
+            ("basis", "basis"),
+            ("oasis", "oasis"),
+            ("tieengs", "tiếng"),
+            ("vieejtss", "vieejtss"),
+        ] {
+            assert_eq!(typed(&c, keys), want, "{keys} spell={}", c.spell_check);
+        }
     }
 }

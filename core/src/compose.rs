@@ -41,6 +41,8 @@ struct State {
     undo_tail: Option<char>,
     /// Phím (chữ thường) ngay trước phím đang xét.
     prev: Option<char>,
+    /// Đã có lần gõ đôi để huỷ một biến đổi người dùng nhìn thấy (`tess`, `aaa`) — có chủ ý.
+    deliberate: bool,
 }
 
 impl State {
@@ -70,6 +72,8 @@ pub struct Rendered {
     pub explicit_tail: bool,
     /// Từ bị đóng băng sau backspace (không biến đổi nữa).
     pub frozen: bool,
+    /// Có lần gõ đôi để huỷ dấu trong từ (`tesst` → `test`), xem ENGINE_RULES §7.
+    pub deliberate_undo: bool,
     /// Chữ chốt đã sửa nhẹ (khi `T` không hợp lệ nhưng bản sửa hợp lệ).
     pub committed: Option<String>,
 }
@@ -112,7 +116,18 @@ pub(crate) fn render(raw: &[KeyInput], cfg: &Config) -> Rendered {
     let full_valid = vowelless || is_valid_full(&letters, st.tone);
     // Đuôi huỷ chỉ được công nhận khi kết quả sau huỷ là chữ ASCII thuần (`as`, `aa`, `dd`).
     let explicit_tail = st.undo_tail.is_some() && transformed.is_ascii();
-    let display = if !cfg.spell_check || prefix_valid || explicit_tail {
+    // Gõ đôi để huỷ dấu: như đuôi huỷ, chỉ công nhận khi chữ sau huỷ là ASCII thuần (`test`; không phải `viêts`).
+    let deliberate = st.deliberate && transformed.is_ascii();
+    // Sau đó, nếu chữ sau huỷ không còn là âm tiết Việt dở dang mà phím thô là đầu một từ tiếng Anh có sẵn
+    // cặp chữ đó (`issu` → `issue`) → hiện phím thô. Còn lại hiện chữ đã huỷ (`tesst` → `test`).
+    // Ngay lúc vừa gõ đôi (đuôi huỷ: `ass`, `tess`) luôn hiện chữ đã huỷ để người dùng thấy dấu đã mất.
+    let english_hold = deliberate
+        && !explicit_tail
+        && !prefix_valid
+        && crate::english::is_prefix(&raw_str.to_ascii_lowercase());
+    let display = if english_hold {
+        raw_str.clone()
+    } else if !cfg.spell_check || prefix_valid || explicit_tail || deliberate {
         transformed.clone()
     } else {
         raw_str.clone()
@@ -130,6 +145,7 @@ pub(crate) fn render(raw: &[KeyInput], cfg: &Config) -> Rendered {
         full_valid,
         explicit_tail,
         frozen: false,
+        deliberate_undo: deliberate,
         committed,
     }
 }
@@ -161,7 +177,12 @@ fn step(st: &mut State, ch: char, cfg: &Config) {
                 }
                 None => false,
             };
-            st.undo_tail = if shown { Some(lower) } else { None };
+            // Huỷ tường minh phải gõ LIỀN ngay sau (`ass`, `aaa`); `basis` (s…s cách nhau) là chữ tiếng Anh.
+            let adjacent = st.prev == Some(lower) || st.undo_tail == Some(lower);
+            st.undo_tail = if shown && adjacent { Some(lower) } else { None };
+            if shown && st.prev == Some(lower) {
+                st.deliberate = true;
+            }
         }
         Effect::Normal => {
             if st.undo_tail != Some(lower) {

@@ -83,6 +83,12 @@ struct TapSessionTests {
         #expect(d.text == "hôm nay là thứ hai delete select border, hòa.")
     }
 
+    @Test func doubleKeyUndoAndEnglishDoubles() {
+        let d = TapDoc()
+        d.type("tesst pass issue thiss classes ")
+        #expect(d.text == "test pass issue this classes ")
+    }
+
     @Test func backspaceInsideWord() {
         let d = TapDoc()
         d.type("vieejt\u{8}\u{8}eetj ")

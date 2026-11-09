@@ -157,10 +157,21 @@ Gõ phím khác → hết đuôi huỷ (`issue` → hiển thị thô). `express
 → không công nhận → khôi phục `express`. Tắt kiểm tra âm tiết: `delete` hiện `dêlt` rồi `e` huỷ dấu mũ,
 nhưng `dêlt` không hợp lệ và `e` không gõ lặp ngay → không công nhận → chốt `delete` (không phải `delte`).
 
+**Gõ đôi để huỷ dấu giữa từ** (`tesst` → `test`): phím huỷ phải gõ **liền** ngay sau phím vừa biến đổi
+(`ass`, `aaa`; `basis` có hai `s` cách nhau → không phải huỷ) và chữ sau huỷ là ASCII thuần. Khi đó:
+lúc đang gõ hiện chữ đã huỷ (`tess` → `tes`), trừ khi đã gõ thêm chữ mà chữ sau huỷ không còn là âm tiết Việt
+dở dang và phím thô là đầu một từ tiếng Anh có sẵn cặp chữ đôi (`issu` → hiện `issu`). Khi chốt: xem §7.
+
 **Từ không có nguyên âm** (`đ`, `đc`, `đt` — viết tắt thường gặp): luôn hiển thị `T`,
 không bị khôi phục khi chốt (`dd` → `đ`; muốn `dd` gõ `ddd`).
 
 ## 7. Chốt từ (space, dấu câu, enter, tab; click/đổi ô)
+
+> **Từ có gõ đôi để huỷ dấu** (§6) được quyết định trước mọi bước khác (sau gõ tắt): nếu phím thô là từ tiếng Anh
+> trong danh sách `core/data/en_double.txt` (kể cả đuôi `s/es/ed/ing/er…`) và bật tự khôi phục → phím thô
+> (`pass`, `issue`, `classes`, `daddy`); ngược lại → chữ đã huỷ (`tesst` → `test`, `thiss` → `this`).
+> Danh sách: từ 4–14 chữ chứa `ss ff rr xx jj dd aa ee oo ww` trong `/usr/share/dict/words`
+> (Webster 1934, hết bản quyền) + `off err add odd`; sinh lại bằng `scripts/gen_en_double.sh`.
 
 Thứ tự:
 1. **Gõ tắt** (chỉ khi chốt bằng phím và bật gõ tắt): nếu `raw` (không phân biệt hoa thường)

@@ -134,6 +134,8 @@ public enum InjectionMethod: Equatable {
         "com.brave.Browser", "com.operasoftware.Opera", "com.vivaldi.Vivaldi", "app.zen-browser.zen",
         "com.kagi.kagimacOS", "com.sigmaos.sigmaos.macos", "ru.yandex.desktop.yandex-browser",
         "com.coccoc.Coccoc",
+        // Ô tìm kiếm có gợi ý bôi đen sau con trỏ, giống thanh địa chỉ.
+        "com.apple.Spotlight", "com.raycast.macos", "com.runningwithcrayons.Alfred",
     ]
     static let office: Set<String> = [
         "com.microsoft.Word", "com.microsoft.Excel", "com.microsoft.Powerpoint", "com.microsoft.Outlook",
