@@ -39,7 +39,10 @@ public final class CompositionSession {
     public func activate(client: TextClient) {
         reset()
         clientReadable = ClientTrust.supportsReading(client)
-        onEvent(clientReadable ? "activate.readable" : "activate.unreadable")
+        let sel = client.selectedRange()
+        let loc = sel.location == NSNotFound ? -1 : sel.location
+        onEvent("\(clientReadable ? "activate.readable" : "activate.unreadable") \(client.bundleIdentifier) "
+            + "sel=\(loc) trust=\(trust.state(client.bundleIdentifier))")
     }
 
     public func deactivate(client: TextClient?) {

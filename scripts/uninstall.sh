@@ -11,6 +11,8 @@ if [ -x "$REG" ] || swiftc -O -framework Carbon "$ROOT/scripts/pv_register.swift
 fi
 pkill -x PhimViet 2>/dev/null || true
 pkill -x PhimVietSettings 2>/dev/null || true
+pkill -x PhimVietKey 2>/dev/null || true
+tccutil reset Accessibility com.phimviet.PhimVietKey >/dev/null 2>&1 || true   # xoá quyền Trợ năng đã cấp
 rm -rf "$DEST"
 echo "• Đã xoá $DEST"
 

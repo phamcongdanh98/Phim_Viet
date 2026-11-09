@@ -178,6 +178,7 @@ final class PhimVietInputController: IMKInputController {
         add("Kiểm tra âm tiết", #selector(menuSpell(_:)), on: p.spellCheck)
         add("Tự khôi phục tiếng Anh", #selector(menuRestore(_:)), on: p.autoRestore)
         m.addItem(.separator())
+        add("Gõ không gạch chân ở mọi app (Phím Việt Key)…", #selector(menuKeyApp(_:)))
         add("Gõ tắt…", #selector(menuMacros(_:)))
         add("Cài đặt…", #selector(menuSettings(_:)))
         add("Giới thiệu Phím Việt", #selector(menuAbout(_:)))
@@ -194,6 +195,7 @@ final class PhimVietInputController: IMKInputController {
     @objc func menuDirect(_ sender: Any?) { AppState.shared.update { $0.directTyping.toggle() } }
     @objc func menuSpell(_ sender: Any?) { AppState.shared.update { $0.spellCheck.toggle() } }
     @objc func menuRestore(_ sender: Any?) { AppState.shared.update { $0.autoRestore.toggle() } }
+    @objc func menuKeyApp(_ sender: Any?) { AppState.shared.openKeyApp() }
     @objc func menuMacros(_ sender: Any?) { AppState.shared.openSettings(tab: "macros") }
     @objc func menuSettings(_ sender: Any?) { AppState.shared.openSettings(tab: "general") }
     @objc func menuAbout(_ sender: Any?) { AppState.shared.openSettings(tab: "about") }

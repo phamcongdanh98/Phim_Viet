@@ -2,8 +2,10 @@
 
 Bộ gõ tiếng Việt cho macOS, viết bằng **InputMethodKit** (chuẩn input method của Apple) với lõi xử lý bằng Rust.
 
-- ✅ **Không** dùng event tap, **không** gửi phím Backspace giả, **không** cần quyền Trợ năng (Accessibility).
-  → Không dính chữ ở thanh URL/Spotlight/Excel, không nuốt chữ khi gõ nhanh, không bị Secure Input chặn.
+- ✅ Hai cách dùng, chọn tuỳ ý (chi tiết ở mục [Hai chế độ](#hai-chế-độ-chọn-cái-nào)):
+  - **Phím Việt** (input method chuẩn của Apple): **không** event tap, **không** phím giả, **không** cần quyền Trợ năng.
+    App nào không cho kiểm chứng (Word, một số ô của Chrome) thì có gạch chân.
+  - **Phím Việt Key** (app chạy riêng, giống OpenKey/EVKey/Gõ Nhanh): **không gạch chân ở mọi app**, cần quyền Trợ năng.
 - ✅ Telex, VNI, Simple Telex · gõ dấu tự do (`tiengse` → `tiếng`) · đặt dấu kiểu mới (hoà) / cũ (hòa)
 - ✅ Kiểm tra âm tiết · tự khôi phục từ tiếng Anh (`text`, `with`, `user`) · ESC trả lại phím thô
 - ✅ Gõ không gạch chân **an toàn**: chỉ ghi thẳng khi app đã chứng minh đọc lại đúng, mọi lần sửa đều kiểm chứng trước — nghi ngờ thì bỏ từ, không bao giờ ghi đè
@@ -56,6 +58,22 @@ Ví dụ: `Vie65t Nam` → `Việt Nam`, `d9uo7ng2` → `đường`.
 Mặc định **không** gạch chân (mục "Gạch chân chữ đang gõ" trong menu nhập liệu đang tắt). Ở mỗi ứng dụng, hai từ đầu tiên vẫn có gạch chân trong lúc Phím Việt kiểm chứng app đọc lại văn bản
 và báo vị trí con trỏ chính xác; đạt thì các từ sau gõ thẳng (mỗi lần ghi vẫn được kiểm tra lại). App không đạt (một số terminal, ô nhập đặc biệt) tự động dùng chế độ
 gạch chân — an toàn, không mất chữ. Chi tiết: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## Hai chế độ: chọn cái nào?
+
+| | **Phím Việt** (input method) | **Phím Việt Key** (app chạy riêng) |
+|---|---|---|
+| Cách hoạt động | Chuẩn InputMethodKit của Apple: chữ đang gõ là "marked text", hoặc ghi thẳng khi app chứng minh đọc lại đúng | Chặn phím toàn hệ thống, xoá chữ cũ bằng ⌫ rồi gõ chữ mới (cách của OpenKey, EVKey, Gõ Nhanh) |
+| Gạch chân | Có ở app không kiểm chứng được (Word, một số ô Chrome) và 2 từ đầu mỗi app | **Không** ở mọi app |
+| Quyền | Không cần | **Trợ năng (Accessibility)** |
+| Rủi ro | Không bao giờ ghi đè chữ (nghi ngờ → bỏ từ) | Gõ quá nhanh / ô có gợi ý lạ có thể sai một từ (đã có xử lý riêng cho trình duyệt, Office, Electron) |
+| Chọn trên thanh menu | **Phím Việt** | **ABC** (Phím Việt Key tự nghỉ khi đang chọn bộ gõ khác) |
+
+Hai chế độ dùng **chung engine và cài đặt** (kiểu gõ, gõ tắt, danh sách app). Mở Phím Việt Key:
+`make install-key`, hoặc menu nhập liệu Phím Việt → **Gõ không gạch chân ở mọi app (Phím Việt Key)…**.
+Lần đầu: bật quyền ở **System Settings → Privacy & Security → Accessibility → Phím Việt Key**,
+rồi chọn **ABC** trên thanh menu. Biểu tượng: `V`/`E` = đang gõ Việt/Anh · `V–` = đang nghỉ (đang chọn bộ gõ khác)
+· `V!` = chưa có quyền. Mỗi lần build lại, macOS coi là app mới → cần bật lại quyền (`make install-key` tự xoá mục cũ).
 
 ## Build từ mã nguồn
 

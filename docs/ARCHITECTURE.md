@@ -32,8 +32,32 @@ flowchart LR
 | PhimVietKit | `macos/PhimViet/{Composition,Shared}`, `EngineBridge.swift` | Logic trình bày chữ + cài đặt, thuần Foundation, test được bằng client giả |
 | Shell IMK | `macos/PhimViet/*.swift` | `IMKServer`, controller, menu, status item, click monitor |
 | Cài đặt | `macos/PhimVietSettings`, `macos/PhimViet/Settings` | App SwiftUI riêng (xem DECISIONS D5) |
+| Phím Việt Key | `macos/PhimVietKey`, `Composition/TapSession.swift` | App chạy riêng không gạch chân (event tap, cần quyền Trợ năng — D12) |
 
-**Không có** event tap, phím Backspace giả, hay quyền Trợ năng — `scripts/verify_no_eventtap.sh` kiểm chứng trên cả mã nguồn và file nhị phân.
+**Không có** event tap, phím Backspace giả, hay quyền Trợ năng trong input method và app Cài đặt —
+`scripts/verify_no_eventtap.sh` kiểm chứng trên cả mã nguồn và file nhị phân. Ngoại lệ duy nhất là app chạy riêng bên dưới.
+
+## Phím Việt Key — app chạy riêng (DECISIONS D12)
+
+```mermaid
+flowchart LR
+    HW["Bàn phím"] --> Tap["KeyTap<br/>CGEventTap (session, head)"]
+    Tap -->|"phím có dấu PVKY<br/>(do chính mình gửi)"| Out
+    Tap --> Gate{"Nguồn nhập = bố cục bàn phím (ABC)?<br/>Chế độ Việt? Không ⌘⌃⌥?"}
+    Gate -->|"không"| Out["Ứng dụng"]
+    Gate -->|"có"| TS["TapSession<br/>(PhimVietKit, thuần)"]
+    TS --> Eng["RustEngine (chung)"]
+    TS -->|".pass"| Out
+    TS -->|".replace(n, chữ, phím gốc)"| Inj["Injector<br/>⌫×n · chữ Unicode · phím gốc<br/>(cách theo app: InjectionMethod)"]
+    Inj --> Out
+    Click["Click chuột / ⌘⌃⌥ / phím điều hướng / đổi app"] -->|"reset (không sửa gì)"| TS
+```
+
+- `TapSession` chỉ nhớ `shown` — chữ chính nó đã đưa vào app cho từ hiện tại; không đọc tài liệu. Phím trùng đúng chữ
+  engine muốn hiện → để app tự chèn (không gửi phím giả). Chỉ khi cần đổi chữ mới nuốt phím và gửi ⌫ + chữ mới.
+- `InjectionMethod.forApp`: trình duyệt gõ trước U+202F để huỷ gợi ý bôi đen rồi ⌫ thêm 1; Office/Electron/terminal có
+  độ trễ giữa các phím; app khác gửi liền.
+- Nguồn nhập không phải bố cục bàn phím (Phím Việt bản IMK, Nhật, Trung…) → nghỉ hẳn, tránh gõ chồng.
 
 ## Engine: tính lại từ phím thô
 

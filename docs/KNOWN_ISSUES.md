@@ -40,3 +40,15 @@
 | B4 | Giao diện Cài đặt chưa được kiểm tra bằng mắt trong môi trường build tự động | Đã build, khởi chạy và giữ tiến trình sống; cần chạy mục "Kiểm tra thêm" trong MANUAL_TEST.md |
 | B5 | Không dùng được `@State` trong SwiftUI khi build bằng CLT (SDK 27 biến `@State` thành macro, CLT thiếu plugin `SwiftUIMacros`) | Trạng thái giao diện để trong `SettingsModel` (`@Published`) |
 | B6 | Bản ký ad-hoc chỉ dùng trên máy tự build | Phân phối cần Developer ID + notarize (README) |
+
+## Phím Việt Key (app chạy riêng)
+
+| # | Vấn đề | Chi tiết |
+|---|---|---|
+| K1 | Cần quyền Trợ năng; build lại phải cấp lại | Chữ ký ad-hoc đổi mỗi lần build (DECISIONS D12) |
+| K2 | Click / phím điều hướng giữa từ → từ đó không được sửa dấu tiếp | Không đọc tài liệu nên không biết con trỏ đã ở đâu — an toàn hơn đoán |
+| K3 | Gõ cực nhanh ở app chậm có thể lệch | Đã thêm độ trễ cho Office/Electron/terminal; app khác báo lỗi thì thêm vào `InjectionMethod.forApp` |
+| K4 | Ô có gợi ý lạ (không phải trình duyệt) có thể xoá nhầm phần gợi ý | Trình duyệt đã xử lý bằng ký tự U+202F; app khác chưa |
+| K5 | Không chạy khi đang chọn input method khác (kể cả Phím Việt bản IMK) | Chủ ý, tránh gõ chồng — chọn ABC |
+| K6 | Ô mật khẩu / Secure Input: không nhận phím | macOS chặn event tap khi Secure Input bật — đúng thiết kế |
+

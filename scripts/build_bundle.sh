@@ -8,6 +8,7 @@ cd "$ROOT"
 B="$ROOT/build"
 APP="$B/PhimViet.app"
 SET="$APP/Contents/Helpers/PhimVietSettings.app"
+KEY="$APP/Contents/Helpers/PhimVietKey.app"
 OBJ="$B/obj"
 SDK="$(xcrun --sdk macosx --show-sdk-path)"
 VERSION="$(grep -m1 '^version' core/Cargo.toml | cut -d'"' -f2)"
@@ -18,10 +19,14 @@ SWIFTFLAGS=(-sdk "$SDK" -swift-version 5 -O -whole-module-optimization)
 scripts/build_rust_universal.sh   # cargo tự bỏ qua nếu không có gì thay đổi
 
 rm -rf "$APP" "$OBJ"
-mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$SET/Contents/MacOS" "$SET/Contents/Resources" "$OBJ"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$SET/Contents/MacOS" "$SET/Contents/Resources" \
+    "$KEY/Contents/MacOS" "$KEY/Contents/Resources" "$OBJ"
 
 IME_SOURCES=(macos/PhimViet/*.swift macos/PhimViet/Composition/*.swift macos/PhimViet/Shared/*.swift)
 SET_SOURCES=(macos/PhimVietSettings/*.swift macos/PhimViet/Settings/*.swift macos/PhimViet/Shared/*.swift)
+# Phím Việt Key (app chạy riêng, DECISIONS D12): dùng chung engine + PhimVietKit.
+KEY_SOURCES=(macos/PhimVietKey/*.swift macos/PhimViet/Composition/*.swift macos/PhimViet/Shared/*.swift
+             macos/PhimViet/EngineBridge.swift)
 
 for A in "${ARCHS[@]}"; do
     echo "• swiftc PhimViet ($A)"
@@ -33,15 +38,23 @@ for A in "${ARCHS[@]}"; do
     swiftc "${SWIFTFLAGS[@]}" -target "$A-apple-macos13.0" -module-name PhimVietSettings -parse-as-library \
         -framework Cocoa -framework SwiftUI \
         "${SET_SOURCES[@]}" -o "$OBJ/PhimVietSettings-$A"
+    echo "• swiftc PhimVietKey ($A)"
+    swiftc "${SWIFTFLAGS[@]}" -target "$A-apple-macos13.0" -module-name PhimVietKey \
+        -I build/rust -L build/rust -lphimviet \
+        -framework Cocoa -framework Carbon -framework ServiceManagement -framework ApplicationServices \
+        "${KEY_SOURCES[@]}" -o "$OBJ/PhimVietKey-$A"
 done
 
 lipo -create "$OBJ"/PhimViet-{arm64,x86_64} -output "$APP/Contents/MacOS/PhimViet"
 lipo -create "$OBJ"/PhimVietSettings-{arm64,x86_64} -output "$SET/Contents/MacOS/PhimVietSettings"
+lipo -create "$OBJ"/PhimVietKey-{arm64,x86_64} -output "$KEY/Contents/MacOS/PhimVietKey"
 
 sed -e "s/\$(MARKETING_VERSION)/$VERSION/" -e "s/\$(CURRENT_PROJECT_VERSION)/$BUILD_NUM/" macos/PhimViet/Info.plist > "$APP/Contents/Info.plist"
 sed -e "s/\$(MARKETING_VERSION)/$VERSION/" -e "s/\$(CURRENT_PROJECT_VERSION)/$BUILD_NUM/" macos/PhimVietSettings/Info.plist > "$SET/Contents/Info.plist"
 printf 'APPL????' > "$APP/Contents/PkgInfo"
 printf 'APPL????' > "$SET/Contents/PkgInfo"
+sed -e "s/\$(MARKETING_VERSION)/$VERSION/" -e "s/\$(CURRENT_PROJECT_VERSION)/$BUILD_NUM/" macos/PhimVietKey/Info.plist > "$KEY/Contents/Info.plist"
+printf 'APPL????' > "$KEY/Contents/PkgInfo"
 cp -R macos/PhimViet/Resources/*.lproj "$APP/Contents/Resources/"
 
 # Biểu tượng menu (template TIFF 16/32 px) vẽ lúc build.
@@ -52,10 +65,11 @@ cp -R macos/PhimViet/Resources/*.lproj "$APP/Contents/Resources/"
 [ -x "$B/pv-register" ] && [ "$B/pv-register" -nt scripts/pv_register.swift ] || \
     swiftc -O -framework Carbon scripts/pv_register.swift -o "$B/pv-register"
 
-plutil -lint "$APP/Contents/Info.plist" "$SET/Contents/Info.plist" >/dev/null
+plutil -lint "$APP/Contents/Info.plist" "$SET/Contents/Info.plist" "$KEY/Contents/Info.plist" >/dev/null
 
 # Ký ad-hoc: app con trước, app cha sau.
 codesign --force --sign - --timestamp=none "$SET"
+codesign --force --sign - --timestamp=none --identifier com.phimviet.PhimVietKey "$KEY"
 codesign --force --sign - --timestamp=none "$APP"
 codesign --verify --deep --strict "$APP"
 

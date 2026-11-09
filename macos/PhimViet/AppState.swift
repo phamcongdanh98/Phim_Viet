@@ -80,6 +80,30 @@ final class AppState {
         }
     }
 
+    /// Mở Phím Việt Key (app chạy riêng trong Contents/Helpers). Tiến trình input method này
+    /// KHÔNG dùng event tap — chỉ mở app kia; người dùng tự cấp quyền Trợ năng cho app đó.
+    func openKeyApp() {
+        let url = Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/PhimVietKey.app")
+        let alert = NSAlert()
+        alert.messageText = L("Phím Việt Key — gõ không gạch chân ở mọi app")
+        alert.informativeText = L("""
+            Phím Việt Key là app chạy riêng (giống OpenKey, EVKey): xoá và gõ lại chữ bằng phím, \
+            nên không có gạch chân ở Word, Chrome… nhưng cần quyền Trợ năng (Accessibility).
+
+            Sau khi mở: bật quyền Trợ năng, rồi chọn bàn phím ABC trên thanh menu \
+            (Phím Việt Key tự nghỉ khi đang chọn bộ gõ khác, kể cả bản này).
+            """)
+        alert.addButton(withTitle: L("Mở Phím Việt Key"))
+        alert.addButton(withTitle: L("Huỷ"))
+        NSApp.activate(ignoringOtherApps: true)
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration()) { _, error in
+            if let error {
+                Log.app.error("open key app failed: \(error.localizedDescription, privacy: .public)")
+            }
+        }
+    }
+
     /// Mở app Cài đặt (nằm trong Contents/Helpers). `tab`: general | typing | macros | apps | about.
     func openSettings(tab: String?) {
         let url = Bundle.main.bundleURL

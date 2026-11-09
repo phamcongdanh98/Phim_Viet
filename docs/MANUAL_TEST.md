@@ -484,3 +484,19 @@ Checklist chạy trên máy thật sau `make install`. Ghi kết quả vào cộ
 | VNI | Đổi sang VNI, gõ `Vie65t Nam` → `Việt Nam` |  |
 | Kiểu cũ | Đổi đặt dấu kiểu cũ, gõ `hoaf thuyr` → `hòa thủy` |  |
 | Gỡ cài đặt | `make uninstall` → Phím Việt biến mất khỏi danh sách (có thể cần đăng xuất) |  |
+
+## Phím Việt Key (app chạy riêng)
+
+Chuẩn bị: `make install-key` → bật quyền Trợ năng → chọn **ABC** trên thanh menu → biểu tượng hiện `V`.
+
+| Mã | Tình huống | Cách thử | Kỳ vọng | Kết quả |
+|---|---|---|---|---|
+| K1 | Word | Gõ `hoom nay laf thuws hai, vieejt nam.` | Đúng chữ, **không gạch chân** | |
+| K2 | Chrome — nội dung trang | Ô soạn Gmail / Google Docs, gõ câu K1 | Như K1 | |
+| K3 | Chrome — thanh địa chỉ | Gõ `vieejt` khi Chrome gợi ý `vietnamnet.vn` | Ra `việt`, gợi ý bị huỷ đúng, không mất/thừa chữ | |
+| K4 | Sửa dấu từ trước | `may ` ⌫ `as` | `mấy` | |
+| K5 | Tiếng Anh | `delete select release data ` | Giữ nguyên | |
+| K6 | Đổi nguồn nhập | Chọn Phím Việt (IMK) trên thanh menu | Biểu tượng Key thành `V–`, không gõ chồng | |
+| K7 | ⌃⇧ | Nhấn-nhả ⌃⇧ | `V` ⇄ `E`, nhớ theo app | |
+| K8 | Gõ nhanh | Gõ nhanh câu S1 trong TextEdit, VS Code, Slack | Không mất/dính chữ | |
+

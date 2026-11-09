@@ -138,3 +138,24 @@ Mỗi mục: **Bối cảnh → Quyết định → Lý do**. Mục mới thêm 
 - **`delete` → `delte` khi tắt kiểm tra âm tiết:** phím `e` cuối được coi là "huỷ tường minh" (vì tắt kiểm tra thì mọi
   biến đổi đều hiện ra) nên không khôi phục. Nay huỷ tường minh cần: biến đổi bị huỷ là chữ Việt hợp lệ, hoặc gõ lặp
   ngay (`aaa`, `ss`). Bộ 309 từ tiếng Anh khi tắt kiểm tra âm tiết: 295 → 297 (`delete`, `border`).
+
+## D12. Thêm Phím Việt Key — app chạy riêng, không gạch chân (2026-11-09, người dùng quyết định)
+
+- **Bối cảnh:** người dùng vẫn thấy gạch chân ở Word và Chrome. Tìm hiểu: mọi bộ gõ tiếng Việt "không gạch chân" phổ biến
+  (OpenKey, EVKey, GoTiengViet, Gõ Nhanh, goxkey) đều là **app chạy riêng** dùng `CGEventTap` + gửi ⌫ giả + quyền Trợ năng;
+  bộ gõ tiếng Việt mặc định của Apple (InputMethodKit) cũng gạch chân. Với InputMethodKit, bỏ gạch chân chỉ an toàn khi
+  app cho đọc lại văn bản chính xác — Word và một số ô Chromium không đáp ứng → giới hạn của cách làm, không phải lỗi.
+- **Quyết định (người dùng chọn):** giữ nguyên Phím Việt (IMK, nguyên tắc cũ không đổi) và **thêm** Phím Việt Key —
+  một app chạy riêng, người dùng tự mở và tự cấp quyền. Đây là ngoại lệ có chủ đích đối với nguyên tắc "không event tap /
+  không phím giả / không Accessibility" của đặc tả ban đầu; nguyên tắc đó vẫn áp dụng cho input method và app Cài đặt
+  (`verify_no_eventtap.sh` chỉ miễn `macos/PhimVietKey`).
+- **Thiết kế:** dùng chung engine Rust + cài đặt; logic quyết định (`TapSession`) thuần, test bằng ứng dụng giả.
+  Không đọc tài liệu: chỉ nhớ chữ chính mình đã gõ cho từ hiện tại; click / ⌘⌃⌥ / phím điều hướng / đổi app → quên từ.
+  Chỉ gửi phím giả khi chữ khác phím vừa gõ. Tự nghỉ khi nguồn nhập không phải bố cục bàn phím (tránh gõ chồng với IMK).
+  Cách gửi theo app (ý tưởng tham khảo từ tài liệu kiến trúc Gõ Nhanh, BSD-3; mã tự viết): trình duyệt gõ trước U+202F để
+  huỷ gợi ý bôi đen; Office/Electron/terminal chèn độ trễ.
+- **Vị trí cài:** `~/Library/Input Methods/PhimViet.app/Contents/Helpers/PhimVietKey.app` (giữ ràng buộc chỉ ghi vào thư mục
+  dự án và `~/Library/Input Methods`). Người dùng có thể kéo ra `/Applications` nếu muốn.
+- **Chữ ký ad-hoc:** mỗi lần build lại macOS coi là app mới → phải bật lại quyền Trợ năng; `install.sh --key` chạy
+  `tccutil reset Accessibility com.phimviet.PhimVietKey` để xoá mục cũ.
+
