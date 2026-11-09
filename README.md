@@ -14,7 +14,18 @@ Bộ gõ tiếng Việt cho macOS, viết bằng **InputMethodKit** (chuẩn inp
 
 Yêu cầu: macOS 13 Ventura trở lên (Apple Silicon hoặc Intel).
 
-## Cài đặt nhanh
+## Cài đặt từ file .dmg (không cần Xcode, Rust)
+
+1. Tải `PhimViet-<phiên bản>.dmg` (mục **Releases** của repo, hoặc tự tạo bằng `make dmg`), mở file.
+2. Bấm đúp **Cài đặt Phím Việt.command**. Nếu macOS chặn vì "nhà phát triển không xác định" (bản chưa ký bằng
+   chứng chỉ Apple): mở Terminal, kéo file đó vào rồi nhấn Enter — hoặc System Settings → Privacy & Security →
+   **Open Anyway**.
+3. Chọn cách dùng (xem [Hai chế độ](#hai-chế-độ-chọn-cái-nào)): thêm **Phím Việt** trong Input Sources, hoặc mở
+   **Phím Việt Key** (không gạch chân, cần quyền Trợ năng) và chọn bàn phím ABC.
+
+Gỡ: bấm đúp **Gỡ cài đặt Phím Việt.command** trong file .dmg.
+
+## Cài đặt từ mã nguồn
 
 Cần [Rust](https://rustup.rs) và Xcode Command Line Tools (`xcode-select --install`). Không cần Xcode đầy đủ.
 

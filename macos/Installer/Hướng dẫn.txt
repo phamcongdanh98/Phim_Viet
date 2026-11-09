@@ -1,0 +1,26 @@
+PHÍM VIỆT — bộ gõ tiếng Việt cho macOS 13 trở lên (Apple Silicon và Intel)
+
+CÀI ĐẶT
+  Bấm đúp "Cài đặt Phím Việt.command".
+
+  Nếu macOS báo "không thể mở vì từ nhà phát triển không xác định" (bản này chưa ký bằng
+  chứng chỉ Apple), chọn MỘT trong hai cách:
+    a) Mở Terminal, kéo file "Cài đặt Phím Việt.command" vào cửa sổ Terminal, nhấn Enter.
+    b) System Settings → Privacy & Security → kéo xuống → "Open Anyway" (Vẫn mở),
+       rồi bấm đúp lại file cài đặt.
+
+HAI CÁCH DÙNG
+  • Phím Việt: chọn trong menu nguồn nhập. Không cần cấp quyền. Ở một số app
+    (Word, vài ô của Chrome) chữ đang gõ có gạch chân.
+  • Phím Việt Key: không gạch chân ở mọi app. Cần bật quyền Trợ năng
+    (System Settings → Privacy & Security → Accessibility) và chọn bàn phím ABC.
+
+PHÍM TẮT
+  ⌃ Control + ⇧ Shift (nhấn rồi nhả): chuyển Việt ⇄ Anh
+  ESC: lấy lại đúng phím đã gõ của từ đang gõ
+  Gõ đôi phím dấu để bỏ dấu: tesst → test, thiss → this
+
+GỠ CÀI ĐẶT
+  Bấm đúp "Gỡ cài đặt Phím Việt.command".
+
+Mã nguồn & báo lỗi: https://github.com/phamcongdanh98/Phim_Viet

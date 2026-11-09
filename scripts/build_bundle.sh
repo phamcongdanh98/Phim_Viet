@@ -61,13 +61,17 @@ cp -R macos/PhimViet/Resources/*.lproj "$APP/Contents/Resources/"
 [ -x "$B/make_icon" ] && [ "$B/make_icon" -nt scripts/make_icon.swift ] || swiftc -O scripts/make_icon.swift -o "$B/make_icon"
 "$B/make_icon" "$APP/Contents/Resources/MenuIcon.tiff"
 
-# Tiện ích đăng ký input source (dùng bởi install.sh / uninstall.sh).
-[ -x "$B/pv-register" ] && [ "$B/pv-register" -nt scripts/pv_register.swift ] || \
-    swiftc -O -framework Carbon scripts/pv_register.swift -o "$B/pv-register"
+# Tiện ích đăng ký input source (universal), nằm trong app để bộ cài .dmg dùng được không cần build.
+for A in "${ARCHS[@]}"; do
+    swiftc -O -target "$A-apple-macos13.0" -framework Carbon scripts/pv_register.swift -o "$OBJ/pv-register-$A"
+done
+lipo -create "$OBJ"/pv-register-{arm64,x86_64} -output "$APP/Contents/MacOS/pv-register"
+cp "$APP/Contents/MacOS/pv-register" "$B/pv-register"
 
 plutil -lint "$APP/Contents/Info.plist" "$SET/Contents/Info.plist" "$KEY/Contents/Info.plist" >/dev/null
 
 # Ký ad-hoc: app con trước, app cha sau.
+codesign --force --sign - --timestamp=none --identifier com.phimviet.pv-register "$APP/Contents/MacOS/pv-register"
 codesign --force --sign - --timestamp=none "$SET"
 codesign --force --sign - --timestamp=none --identifier com.phimviet.PhimVietKey "$KEY"
 codesign --force --sign - --timestamp=none "$APP"
