@@ -51,4 +51,6 @@
 | K4 | Ô có gợi ý lạ (không phải trình duyệt) có thể xoá nhầm phần gợi ý | Trình duyệt đã xử lý bằng ký tự U+202F; app khác chưa |
 | K5 | Không chạy khi đang chọn input method khác (kể cả Phím Việt bản IMK) | Chủ ý, tránh gõ chồng — chọn ABC |
 | K6 | Ô mật khẩu / Secure Input: không nhận phím | macOS chặn event tap khi Secure Input bật — đúng thiết kế |
+| K7 | Nhập mật khẩu trong Terminal/iTerm (`sudo`, `ssh`) khi đang gõ tiếng Việt có thể bị biến đổi (`hoaf123` → `hoà123`) | Terminal không bật Secure Input cho lời nhắc mật khẩu nên bộ gõ vẫn nhận phím (cả bản IMK). Nên thêm Terminal vào **Luôn gõ tiếng Anh** (Cài đặt → Ứng dụng), hoặc bật Terminal → Secure Keyboard Entry |
+| K8 | Raycast/Alfred mở cửa sổ nổi nhưng không thành app phía trước → không nhận cách gửi riêng cho ô tìm kiếm | Dùng cách mặc định; báo lỗi nếu gặp |
 

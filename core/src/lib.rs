@@ -269,6 +269,13 @@ impl Engine {
                 return x;
             }
         }
+        // `www` (địa chỉ web): ba chữ w trở lên luôn là phím thô, không phải ư/huỷ dấu.
+        if self.config.auto_restore
+            && r.raw.len() >= 3
+            && r.raw.chars().all(|c| c.eq_ignore_ascii_case(&'w'))
+        {
+            return r.raw.clone();
+        }
         if !r.frozen && r.deliberate_undo {
             // Gõ đôi để huỷ dấu: từ tiếng Anh thật (`pass`, `issue`) → phím thô; còn lại (`tesst`) → chữ đã huỷ (`test`).
             if self.config.auto_restore && english::is_word(&r.raw.to_ascii_lowercase()) {

@@ -179,7 +179,7 @@ const TELEX: &[(&str, &str)] = &[
     ("asss", "ass"),
     ("ddd", "dd"),
     ("ww", "w"),
-    ("www", "ww"),
+    ("www", "www"),
     ("aww", "aw"),
     ("ooo", "oo"),
     ("eee", "ee"),
@@ -679,5 +679,19 @@ fn double_key_undo_vs_english_words() {
         ] {
             assert_eq!(typed(&c, keys), want, "{keys} spell={}", c.spell_check);
         }
+    }
+}
+
+/// `www` trong địa chỉ web không bị biến thành `ww`/`ư`.
+#[test]
+fn www_stays_raw() {
+    for (keys, want) in [
+        ("www", "www"),
+        ("WWW", "WWW"),
+        ("w", "ư"),
+        ("twitter", "twitter"),
+        ("nhw", "như"),
+    ] {
+        assert_eq!(typed(&telex(), keys), want, "{keys}");
     }
 }
