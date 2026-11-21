@@ -79,10 +79,21 @@ cp "$APP/Contents/MacOS/pv-register" "$B/pv-register"
 plutil -lint "$APP/Contents/Info.plist" "$SET/Contents/Info.plist" "$KEY/Contents/Info.plist" >/dev/null
 
 # Ký ad-hoc: app con trước, app cha sau.
-codesign --force --sign - --timestamp=none --identifier com.phimviet.pv-register "$APP/Contents/MacOS/pv-register"
-codesign --force --sign - --timestamp=none "$SET"
-codesign --force --sign - --timestamp=none --identifier com.phimviet.PhimVietKey "$KEY"
-codesign --force --sign - --timestamp=none "$APP"
+# Danh tính ký: PHIMVIET_SIGN_ID, hoặc chứng chỉ tự ký "Phim Viet Code Signing" nếu máy có
+# (scripts/make_signing_cert.sh — giữ quyền Trợ năng qua các lần cập nhật), nếu không thì ad-hoc.
+SIGN="${PHIMVIET_SIGN_ID:-}"
+if [ -z "$SIGN" ]; then
+    if security find-certificate -c "Phim Viet Code Signing" >/dev/null 2>&1; then
+        SIGN="Phim Viet Code Signing"
+    else
+        SIGN="-"
+    fi
+fi
+echo "• Ký bằng: $SIGN"
+codesign --force --sign "$SIGN" --timestamp=none --identifier com.phimviet.pv-register "$APP/Contents/MacOS/pv-register"
+codesign --force --sign "$SIGN" --timestamp=none "$SET"
+codesign --force --sign "$SIGN" --timestamp=none --identifier com.phimviet.PhimVietKey "$KEY"
+codesign --force --sign "$SIGN" --timestamp=none "$APP"
 codesign --verify --deep --strict "$APP"
 
 echo "→ $APP ($(lipo -archs "$APP/Contents/MacOS/PhimViet"))"

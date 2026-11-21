@@ -41,7 +41,10 @@ MSG
 read -r -p "Mở Phím Việt Key ngay bây giờ? [c/K] " ans || ans=""
 case "$ans" in
     c|C|y|Y)
-        tccutil reset Accessibility com.phimviet.PhimVietKey >/dev/null 2>&1 || true
+        # Chỉ bản ký ad-hoc mới cần xoá quyền cũ; bản ký bằng chứng chỉ giữ quyền qua các lần cập nhật.
+        if codesign -dr - "$APP/Contents/Helpers/PhimVietKey.app" 2>&1 | grep -q cdhash; then
+            tccutil reset Accessibility com.phimviet.PhimVietKey >/dev/null 2>&1 || true
+        fi
         open "$APP/Contents/Helpers/PhimVietKey.app"
         echo "• Đã mở Phím Việt Key — bật quyền Trợ năng khi macOS hỏi."
         ;;

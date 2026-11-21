@@ -183,3 +183,14 @@ Mỗi mục: **Bối cảnh → Quyết định → Lý do**. Mục mới thêm 
   (trước 99,25% / 99,09%); số từ ra chữ ASCII sai 92 → 9 (còn lại: `ass` theo đặc tả và từ hiếm có `z`).
   Tốc độ 1,49 µs/phím.
 
+## D14. Ký bằng chứng chỉ tự ký ổn định; www (2026-11-21)
+
+- **Vấn đề:** ký ad-hoc → mỗi bản build có định danh mã khác (cdhash) → macOS coi Phím Việt Key là app mới, phải bật
+  lại quyền Trợ năng sau mỗi lần cập nhật.
+- **Quyết định (người dùng đồng ý):** `scripts/make_signing_cert.sh` tạo chứng chỉ ký mã tự ký "Phim Viet Code Signing"
+  trong Keychain đăng nhập (khoá riêng chỉ ở Keychain, không vào repo). `build_bundle.sh` tự dùng nó nếu có
+  (hoặc `PHIMVIET_SIGN_ID`), không có thì ad-hoc. Định danh thành `identifier … and certificate leaf = H"…"` — ổn định qua
+  các bản build. Script cài chỉ `tccutil reset` khi bản cài là ad-hoc. Không thay chứng chỉ Developer ID: máy khác
+  vẫn cần "Open Anyway".
+- **www:** `www` (≥3 chữ w) luôn giữ phím thô (trước: `ww`), vì gần như chỉ dùng cho địa chỉ web.
+

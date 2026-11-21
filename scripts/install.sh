@@ -36,8 +36,11 @@ echo "• Đăng ký input source"
 
 KEYAPP="$DEST/PhimViet.app/Contents/Helpers/PhimVietKey.app"
 if [ $OPEN_KEY = 1 ]; then
-    # Bản build mới có chữ ký mới: quyền Trợ năng cũ không còn hiệu lực → xoá mục cũ để macOS hỏi lại.
-    tccutil reset Accessibility com.phimviet.PhimVietKey >/dev/null 2>&1 || true
+    # Ký ad-hoc: mỗi bản build là "app mới", quyền cũ vô hiệu → xoá mục cũ để macOS hỏi lại.
+    # Ký bằng chứng chỉ ổn định (scripts/make_signing_cert.sh): GIỮ quyền, không xoá.
+    if codesign -dr - "$KEYAPP" 2>&1 | grep -q cdhash; then
+        tccutil reset Accessibility com.phimviet.PhimVietKey >/dev/null 2>&1 || true
+    fi
     open "$KEYAPP" && echo "• Đã mở Phím Việt Key — bật quyền Trợ năng khi macOS hỏi"
 fi
 
