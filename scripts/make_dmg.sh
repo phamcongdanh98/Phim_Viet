@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Đóng gói build/PhimViet-<phiên bản>.dmg để cài không cần Xcode/Rust:
-#   PhimViet.app · Cài đặt Phím Việt.command · Gỡ cài đặt Phím Việt.command · Hướng dẫn.txt
+#   PhimViet.app · Cài đặt Phím Việt.command · Gỡ cài đặt Phím Việt.command · Hướng dẫn.txt (= docs/HUONG_DAN.md)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -9,7 +9,8 @@ scripts/build.sh
 STAGE="$(mktemp -d)/Phím Việt"
 mkdir -p "$STAGE"
 cp -R build/PhimViet.app "$STAGE/"
-cp macos/Installer/*.command macos/Installer/*.txt "$STAGE/"
+cp macos/Installer/*.command "$STAGE/"
+cp docs/HUONG_DAN.md "$STAGE/Hướng dẫn.txt"   # mở bằng TextEdit
 chmod +x "$STAGE"/*.command
 codesign --verify --deep --strict "$STAGE/PhimViet.app"
 OUT="build/PhimViet-$VERSION.dmg"

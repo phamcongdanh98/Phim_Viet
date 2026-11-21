@@ -18,6 +18,8 @@ Bộ gõ tiếng Việt cho macOS, viết bằng **InputMethodKit** (chuẩn inp
 
 Yêu cầu: macOS 13 Ventura trở lên (Apple Silicon hoặc Intel).
 
+📖 **Hướng dẫn cài đặt & sử dụng đầy đủ: [docs/HUONG_DAN.md](docs/HUONG_DAN.md)**
+
 ## Cài đặt từ file .dmg (không cần Xcode, Rust)
 
 1. Tải `PhimViet-<phiên bản>.dmg` (mục **Releases** của repo, hoặc tự tạo bằng `make dmg`), mở file.
@@ -87,7 +89,7 @@ gạch chân — an toàn, không mất chữ. Chi tiết: [docs/ARCHITECTURE.md
 Hai chế độ dùng **chung engine và cài đặt** (kiểu gõ, gõ tắt, danh sách app). Mở Phím Việt Key:
 `make install-key`, hoặc menu nhập liệu Phím Việt → **Gõ không gạch chân ở mọi app (Phím Việt Key)…**.
 Lần đầu: bật quyền ở **System Settings → Privacy & Security → Accessibility → Phím Việt Key**,
-rồi chọn **ABC** trên thanh menu. Biểu tượng: `V`/`E` = đang gõ Việt/Anh · `V–` = đang nghỉ (đang chọn bộ gõ khác)
+rồi chọn **ABC** trên thanh menu. Biểu tượng: `V`/`E` = đang gõ Việt/Anh · ẩn = đang nghỉ (đang chọn bộ gõ khác)
 · `V!` = chưa có quyền. Mỗi lần build lại, macOS coi là app mới → cần bật lại quyền (`make install-key` tự xoá mục cũ).
 
 ## Build từ mã nguồn
